@@ -1,0 +1,101 @@
+@host = http://localhost:8000
+
+### Auth - Login
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "user@example.com",
+  "password": "s3cret"
+}
+
+### Auth - Logout
+POST {{host}}/auth/logout
+
+
+### Book - Create
+POST {{host}}/book/
+Content-Type: application/json
+
+{
+  "id_IBSN": "978-1",
+  "title": "Ejemplo",
+  "author": "Autor",
+  "gender": 1,
+  "weight": 0.5,
+  "price": 9.99,
+  "is_borrowed": false
+}
+
+### Book - Read by ISBN
+GET {{host}}/book/978-1
+
+### Book - Read all
+GET {{host}}/book/
+
+### Book - Patch
+PATCH {{host}}/book/978-1
+Content-Type: application/json
+
+{
+  "title": "Nuevo título"
+}
+
+### Book - Delete
+DELETE {{host}}/book/978-1
+
+
+### User - Create
+POST {{host}}/user/
+Content-Type: application/json
+
+{
+  "fullName": "Alice",
+  "email": "alice@example.com",
+  "password": "secret"
+}
+
+### User - Read all
+GET {{host}}/user/all
+
+### User - Read
+GET {{host}}/user/1054861024
+
+### User - Patch
+PATCH {{host}}/user/1054861024
+Content-Type: application/json
+
+{
+  "email": "alice@newdomain.com"
+}
+
+### User - Delete
+DELETE {{host}}/user/alice
+
+
+### Loan - Create
+POST {{host}}/loan/
+Content-Type: application/json
+
+{
+  "user": "alice",
+  "book": "978-1",
+  "loanDate": "2025-11-25T00:00:00Z"
+}
+
+### Loan - Read
+GET {{host}}/loan/184949494
+
+### Loan - Read all
+GET {{host}}/loan/
+
+### Loan - Patch
+PATCH {{host}}/loan/184949494
+Content-Type: application/json
+
+{
+  "loanDate": "2025-12-01T00:00:00Z"
+}
+
+### Loan - Delete
+DELETE {{host}}/loan/184949494
