@@ -1,6 +1,7 @@
 from datetime import datetime
 from .user import User
 from .book import Book
+from app.utils import generate_id
 
 class Loan:
     _id: str
@@ -8,8 +9,8 @@ class Loan:
     _book: Book
     _loanDate: datetime
     
-    def __init__(self, user: User, book: Book, loanDate: datetime):
-        self.set_id('000000')
+    def __init__(self, user: User, book: Book, loanDate: datetime, id: str = None):
+        self.__set_id(id)
         self.set_user(user)
         self.set_book(book)
         self.set_loanDate(loanDate)
@@ -49,8 +50,13 @@ class Loan:
     def get_loanDate(self):
         return self._loanDate
     
-    def set_id(self, id: str):
-        self._id = id
+    def __set_id(self, id: str):
+        """Asigna un `id`; si es `None`, lo genera automáticamente."""
+        if id is None:
+            self._id = generate_id()
+        else:
+            self._id = id
+        
     def set_user(self, user: User):
         self._user = user
     def set_book(self, book: Book):
