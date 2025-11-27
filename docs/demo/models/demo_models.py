@@ -26,12 +26,14 @@ from app.models.enums.person_role import PersonRole
 
 def run_demo():
     print("--- Person ---")
-    p = Person(id='p1', fullName='Alice', email='alice@example.com', password='pw', role=PersonRole.USER)
+    p = Person(fullName='Alice', email='alice@example.com', password='pw', role=PersonRole.USER)
     print(p)
     print(p.to_dict())
 
     print("\n--- User ---")
-    u = User(id='u1', fullName='Bob', email='bob@example.com', password='pw', loans=[])
+    u = User(fullName='Bob', email='bob@example.com', password='pw', loans=[])
+    u2 = User( fullName='Bob', email='bob@example.com', password='pw', loans=[])
+    print(f"u == u2: {u == u2}")
     u.add_loan({'id': 'loan-1'})
     print(u)
     print(u.to_dict())
@@ -42,7 +44,7 @@ def run_demo():
     print(b.to_dict())
 
     print("\n--- Loan ---")
-    loan = Loan(id='loan-1', user=u, book=b, loanDate=datetime.now(timezone.utc))
+    loan = Loan( user=u, book=b, loanDate=datetime.now(timezone.utc))
     print(loan)
     print(loan.to_dict())
 

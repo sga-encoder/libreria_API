@@ -1,5 +1,6 @@
 from .person import Person
 from .enums import PersonRole
+
 class User(Person):
     __loans: list
     
@@ -19,9 +20,9 @@ class User(Person):
     @classmethod
     def default(cls):
         return cls(
-            fullName="Default User",
-            email="default",
-            password="default",
+            fullName="Finn",
+            email="finn.adventure@time.cartoon",
+            password="adventuretime",
             loans=[]
         )
         
