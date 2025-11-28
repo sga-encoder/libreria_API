@@ -56,6 +56,12 @@ class CRUDLoan(ICrud[Loan]):
                             break
                     except Exception:
                         pass
+                    
+        if user is None or book is None:
+            print("Error: user or book not found in Library.")
+            return None
+        
+
         # Si el libro ya está prestado, encolar al usuario en la cola de reservas
         if book.get_is_borrowed():
             print("Loan has been attempted for a borrowed book. Adding user to reservation queue.")
@@ -123,13 +129,14 @@ class CRUDLoan(ICrud[Loan]):
                 return loan
     
     def read_all(self):
-        """Leer todos los préstamos activos.
+        """Leer todos los préstamos activos desde persistencia.
 
         Estrategia:
-        - Intentar leer desde un JSON persistente usando FileManager en
-          'data/loanRecords.json'. Si existe y contiene datos, devolver esa lista.
-        - Si no existe fichero o está vacío, devolver la representación actual
-          en memoria (`self.__loans`) transformada a dicts si es posible.
+        1. Intentar leer desde FileManager('data/loanRecords.json').
+        2. Si existe y contiene datos, parsear cada dict como Loan usando Loan.from_dict.
+        3. Sincronizar Library.loanRecords con los Loan parseados.
+        4. Devolver la lista de objetos Loan.
+        5. Si no hay archivo o está vacío, devolver self.__loans.
         """
         # Intentar leer desde el fichero JSON gestionado por FileManager
         try:
@@ -138,19 +145,29 @@ class CRUDLoan(ICrud[Loan]):
         except Exception:
             stored = None
 
-        if stored:
-            # Si FileManager devolvió datos (lista de dicts), devolverlos tal cual
-            return stored
+        # Si obtuvimos datos del archivo, parsearlos como objetos Loan
+        if stored and isinstance(stored, list) and len(stored) > 0:
+            loans_list = []
+            for item in stored:
+                try:
+                    # Cada item debería ser un dict con estructura de Loan.to_dict()
+                    loan = Loan.from_dict(item)
+                    loans_list.append(loan)
+                except Exception as e:
+                    # Si un item falla al parsear, loguear pero continuar
+                    print(f"Warning: failed to parse loan from dict: {e}")
+                    continue
+            
+            # Sincronizar Library con los loans leídos (son autoridad de verdad)
+            if loans_list:
+                Library.set_loanRecords(loans_list)
+                self.__loans = loans_list
+            
+            # Devolver la lista de objetos Loan
+            return loans_list
 
-        # Fallback: construir lista desde la memoria (objetos Loan)
-        result = []
-        for loan in self.__loans:
-            try:
-                result.append(loan.to_dict())
-            except Exception:
-                # Si no es un objeto Loan serializable, intentar usarlo tal cual
-                result.append(loan)
-        return result
+        # Fallback: si no hay archivo o está vacío, devolver objetos Loan en memoria
+        return self.__loans
     
     def update(self, id: str, json: dict, new_book_id: Optional[str] = None) -> Loan:
         for loan in list(self.__loans):
@@ -206,13 +223,10 @@ class CRUDLoan(ICrud[Loan]):
                 except Exception:
                     pass
 
-                # Usar new_book_id si fue pasado; evitar input en tests
+                # Usar new_book_id si fue pasado; no usar input() para ser testable
                 if new_book_id is None:
-                    try:
-                        new_book_id = input("Enter id of the new book for the loan: ")
-                    except Exception:
-                        # No estamos en modo interactivo; devolver None
-                        return None
+                    print("No new_book_id provided for update; aborting.")
+                    return None
 
                 book_found = None
                 for book1 in Library.get_inventary():
@@ -235,18 +249,13 @@ class CRUDLoan(ICrud[Loan]):
                         except Exception:
                             pass
                     Library.set_reservationsQueue(reservationQueue)
-                else:
-                    CRUDLoan.create(self, json, user, book_found)
+                    return None
 
-                # Aceptar tanto dicts como modelos Pydantic (BookCreate)
-                if hasattr(json, "model_dump"):
-                    data = json.model_dump()
-                elif hasattr(json, "dict"):
-                    data = json.dict()
-                else:
-                    data = json
-                data["id"] = id
-                return Loan.from_dict(data)
+                # Crear el nuevo préstamo y devolverlo (create ya sincroniza Library y self.__loans)
+                created = CRUDLoan.create(self, json, user, book_found)
+                if created is not None:
+                    return created
+                return None
         
         print("Loan not found")
     
