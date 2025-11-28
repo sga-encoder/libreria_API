@@ -74,3 +74,6 @@ Thumbs.db
 data/json/*.json
 data/csv/*.csv
 ",
+
+# environment files
+.env
