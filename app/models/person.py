@@ -169,6 +169,24 @@ class Person:
             "password": self._password,
             "role": self._role.name,
         }
+        
+    def __eq__(self, other):
+        """Comparación de igualdad entre instancias de Person.
+
+        Regla:
+        - Si ambos objetos tienen `id`, se comparan los `id`.
+        - Si no, se compara el `email` (se asume único por usuario).
+        - Devuelve False si `other` no es una Person.
+        """
+        if self is other:
+            return True
+        if not isinstance(other, Person):
+            return False
+        # Si ambos tienen id, usarlo como identidad
+        if getattr(self, "_id", None) and getattr(other, "_id", None):
+            return self._id == other._id
+        # Fallback: comparar por email
+        return self._email == other._email
 
     def __str__(self):
         """Representación en cadena legible para humanos."""

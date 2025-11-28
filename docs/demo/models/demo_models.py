@@ -20,31 +20,40 @@ PowerShell:
 from datetime import datetime, timezone
 
 from app.models import Person, User, Book, Loan
-from app.models.enums.book_gender import BookGender
 from app.models.enums.person_role import PersonRole
 
 
 def run_demo():
     print("--- Person ---")
-    p = Person(fullName='Alice', email='alice@example.com', password='pw', role=PersonRole.USER)
-    print(p)
-    print(p.to_dict())
+    p1 = Person(fullName='Alice', email='alice@example.com', password='pw', role=PersonRole.USER)
+    p2 = Person.from_dict(p1.to_dict())
+    print("p1", p1)
+    print('p2',p2 )
+    print('p1',p1.to_dict())
+    print('p2',p2.to_dict())
+    print(f"p1 == p2: {p1 == p2}")
+    
 
     print("\n--- User ---")
-    u = User(fullName='Bob', email='bob@example.com', password='pw', loans=[])
-    u2 = User( fullName='Bob', email='bob@example.com', password='pw', loans=[])
-    print(f"u == u2: {u == u2}")
-    u.add_loan({'id': 'loan-1'})
-    print(u)
-    print(u.to_dict())
+    u1 = User(fullName='Bob', email='bob@example.com', password='pw', loans=[])   
+    print("u1", u1.to_dict())
+     
+    u2 = User.from_dict(u1.to_dict())
+    
+    print(f"u1 == u2: {u1 == u2}")
+    
+    print("u1", u1)
+    print("u2", u2)
+    print("u1", u1.to_dict())
+    print("u2", u2.to_dict())
 
     print("\n--- Book ---")
-    b = Book(id_IBSN='978-1', title='Ejemplo', author='Autor', gender=BookGender.AVENTURA, weight=0.5, price=9.99)
+    b = Book(id_IBSN='978-1', title='Ejemplo', author='Autor', gender='AVENTURA', weight=0.5, price=9.99)
     print(b)
     print(b.to_dict())
 
     print("\n--- Loan ---")
-    loan = Loan( user=u, book=b, loanDate=datetime.now(timezone.utc))
+    loan = Loan( user=u1, book=b, loanDate=datetime.now(timezone.utc))
     print(loan)
     print(loan.to_dict())
 

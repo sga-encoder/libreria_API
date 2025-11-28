@@ -1,19 +1,30 @@
 from fastapi import APIRouter, HTTPException, status
 from app.schemas import BookCreate, BookUpdate
 from app.crud import CRUDBook
-from app.services import Library
+from app.services import search_book_by_BookAPI
 
 book_router = APIRouter(
     prefix="/book",
     tags=["book"]
 )
 
-book_crud = CRUDBook(Library.get_inventary().to_list(), Library.get_order_inventary())
+book_crud = CRUDBook('data/json/books.json')
 
 @book_router.post("/")
 def create(book: BookCreate):
     data = book_crud.create(book)
     return {"message": f'sea creado el libro satisfactoriamente',  "data": data.to_dict()}
+
+@book_router.post("/ISBN/{id_IBSN}")
+def create_by_ISBN(id_IBSN: str):
+    books = search_book_by_BookAPI(f'isbn:{id_IBSN}')
+    # `search_book_by_BookAPI` devuelve una lista; tomar el primer resultado
+    if not books:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found in external API")
+    book_data = books[0]
+    data = book_crud.create(book_data)
+    return {"message": f'sea creado el libro satisfactoriamente',  "data": data.to_dict()}
+
 
 @book_router.get("/{id_IBSN}")
 def read(id_IBSN: str):
@@ -40,3 +51,4 @@ def delete(id_IBSN:str):
     if not data:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
     return {"message": f"se elimino el libro con este {id_IBSN} satisfactoriamente",   "data": True}
+

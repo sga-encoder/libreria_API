@@ -81,6 +81,12 @@ class Stack(Generic[T]):
     def __repr__(self):
         """Devuelve una representación de la pila."""
         return f"Stack({list(self._stack)})"
+    
+    def __str__(self) -> str:
+        """Representación con cada elemento en su propia línea (tope primero)."""
+        if not self._stack:
+            return "Stack()"
+        return "Stack:(\n" + "\n".join(str(x) for x in reversed(self._stack))
 
     def to_list(self) -> list[T]:
         """Devuelve una lista con el tope en la posición 0.

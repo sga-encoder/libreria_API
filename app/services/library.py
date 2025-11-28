@@ -83,6 +83,12 @@ class Library:
     @classmethod
     def set_bookcase(cls, bookcase: list[Book]) -> None:
         cls.__bookcase = bookcase
+        
+    @classmethod
+    def push_inventary(cls, value: Book ) -> None :
+        """Aplica una función modificadora al inventario de libros."""
+        cls.__inventary.push(value)
+            
 
 
 # Inicializar al importar el módulo para mantener comportamiento previo

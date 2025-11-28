@@ -19,13 +19,18 @@ Content-Type: application/json
 
 {
   "id_IBSN": "978-1",
-  "title": "Ejemplo",
-  "author": "Autor",
-  "gender": 1,
+  "title": "Sam and Cat",
+  "author": "Disney XD",
+  "gender": "ACCION",
   "weight": 0.5,
   "price": 9.99,
+  "description": "A fun book about Sam and Cat's adventures.",
+  "frond_page_url": "http://example.com/frond_page.jpg",
   "is_borrowed": false
 }
+
+### Book - Create by ISBN
+POST {{host}}/book/ISBN/9780547928210
 
 ### Book - Read by ISBN
 GET {{host}}/book/978-1

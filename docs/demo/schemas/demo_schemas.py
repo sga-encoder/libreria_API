@@ -23,7 +23,6 @@ from app.schemas import AuthLogin
 from app.schemas import BookCreate, BookUpdate
 from app.schemas import LoanCreate, LoanUpdate
 from app.schemas import UserCreate, UserUpdate
-from app.models.enums import BookGender
 
 
 def run_demo():
@@ -35,7 +34,7 @@ def run_demo():
     print("\n--- BookCreate / BookUpdate ---")
     b = BookCreate(
         id='978-1', title='Ejemplo', author='Autor',
-        gender=BookGender.AVENTURA, weight=0.5, price=9.99, is_borrowed=False
+        gender='AVENTURA', weight=0.5, price=9.99, is_borrowed=False
     )
     bu = BookUpdate(title='Nuevo título')
     print(b.model_dump())

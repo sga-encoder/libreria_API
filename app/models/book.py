@@ -1,29 +1,32 @@
-from .enums import BookGender
+from typing import Optional
 
 class Book:
     __id_IBSN: str
     __title: str
     __author: str
-    __gender: BookGender
+    __gender: Optional[str]
     __weight: float
     __price: float
+    __description: str
+    __frond_page_url: str
     __is_borrowed: bool
     
-    def __init__(self, id_IBSN: str, title: str, author: str, gender: BookGender, weight: float, price: float, is_borrowed: bool = False):
+    def __init__(self, id_IBSN: str, title: str, author: str, gender: Optional[str], weight: float, price: float, description: str, frond_page_url: str, is_borrowed: bool = False):
         self.__set_id_IBSN(id_IBSN)
         self.set_title(title)
         self.set_author(author)
         self.set_gender(gender)
         self.set_weight(weight)
         self.set_price(price)
+        self.set_description(description)
+        self.set_frond_page_url(frond_page_url)
         self.set_is_borrowed(is_borrowed)
         
     @classmethod
     def from_dict(cls, data: dict):
-        # Normalizar el campo 'gender' para aceptar str, int o BookGender
+        # Normalizar el campo 'gender' para aceptar str o None
         raw_gender = data.get("gender")
-        # Evita pasar None a BookGender — permite actualizaciones parciales
-        gender = BookGender(raw_gender) if raw_gender is not None else None
+        gender = raw_gender if raw_gender is not None else None
 
         return cls(
             id_IBSN=data.get("id_IBSN"),
@@ -32,22 +35,24 @@ class Book:
             gender=gender,
             weight=data.get("weight"),
             price=data.get("price"),
+            description=data.get("description", ""),
+            frond_page_url=data.get("frond_page_url", ""),
             is_borrowed=data.get("is_borrowed", False),
         )
         
     @classmethod
     def default(cls):
         return cls(
-            id_IBSN="000-0",
+            id_IBSN="0000",
             title="Default Title",
             author="Default Author",
-            gender=BookGender.OTHER,
+            gender="OTHER",
             weight=0.0,
             price=0.0,
+            description="",
+            frond_page_url="",
             is_borrowed=False
         )
-        
-        
         
     def get_id_IBSN(self):
         return self.__id_IBSN
@@ -61,6 +66,10 @@ class Book:
         return self.__weight
     def get_price(self):
         return self.__price
+    def get_description(self):
+        return self.__description
+    def get_frond_page_url(self):
+        return self.__frond_page_url
     def get_is_borrowed(self):
         return self.__is_borrowed
     
@@ -70,12 +79,16 @@ class Book:
         self.__title = title
     def set_author(self, author: str):
         self.__author = author
-    def set_gender(self, gender: BookGender):
+    def set_gender(self, gender: Optional[str]):
         self.__gender = gender
     def set_weight(self, weight: float):
         self.__weight = weight
     def set_price(self, price: float):
         self.__price = price
+    def set_description(self, description: str):
+        self.__description = description
+    def set_frond_page_url(self, frond_page_url: str):
+        self.__frond_page_url = frond_page_url
     def set_is_borrowed(self, is_borrowed: bool):
         self.__is_borrowed = is_borrowed
         
@@ -84,9 +97,11 @@ class Book:
             "id_IBSN": self.__id_IBSN,
             "title": self.__title,
             "author": self.__author,
-            "gender": self.__gender.name if self.__gender is not None else None,
+            "gender": self.__gender if self.__gender is not None else None,
             "weight": self.__weight,
             "price": self.__price,
+            "description": self.__description,
+            "frond_page_url": self.__frond_page_url,
             "is_borrowed": self.__is_borrowed
         }
         
@@ -97,3 +112,19 @@ class Book:
     def __repr__(self):
         """Sobreescribe la representación para debugging"""
         return f"Book(id_IBSN={self.__id_IBSN}, title={self.__title}, author={self.__author})"
+    
+    def __eq__(self, other):
+        """Comparación de igualdad entre instancias de Person.
+
+        Regla:
+        - Si ambos objetos tienen `id`, se comparan los `id`.
+        - Devuelve False si `other` no es una Prestamo.
+        """
+        if self is other:
+            return True
+        if not isinstance(other, Book):
+            return False
+        
+        # Si ambos tienen id, usarlo como identidad
+        if getattr(self, "__id_IBSN", None) and getattr(other, "__id_IBSN", None):
+            return self.__id_IBSN == other.__id_IBSN

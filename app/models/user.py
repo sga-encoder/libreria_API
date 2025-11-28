@@ -4,17 +4,18 @@ from .enums import PersonRole
 class User(Person):
     __loans: list
     
-    def __init__(self, fullName: str, email: str, password: str, loans: list):
-        super().__init__(fullName, email, password, PersonRole.USER)
+    def __init__(self, fullName: str, email: str, password: str, loans: list, id: str = None):
+        super().__init__(fullName, email, password, PersonRole.USER, id)
         self.__set_loans(loans)
         
     @classmethod
     def from_dict(cls, data: dict):
         return cls(
-            fullName=data["fullName"],
-            email=data["email"],
-            password=data["password"],
-            loans=data.get("loans", [])
+            fullName=data.get("fullName"),
+            email=data.get("email"),
+            password=data.get("password"),
+            loans=data.get("loans", []),
+            id=data.get("id")
         )
         
     @classmethod
