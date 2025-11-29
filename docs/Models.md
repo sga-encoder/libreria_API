@@ -1,7 +1,8 @@
 [⬆ Volver al inicio](#top)
 # Models
+
 Resumen de los modelos de dominio en `app.models`: clases, campos,
-métodos útiles y ejemplos de uso.
+métodos útiles, validaciones y ejemplos de uso.
 
 **Objetivo**: referencia rápida de las clases del dominio (qué representan,
 cómo crearlas y cómo serializarlas). ✅

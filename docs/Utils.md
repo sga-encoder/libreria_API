@@ -174,26 +174,41 @@ print(insert_sort([1, 4], key=lambda x: x, item=2))  # -> [1, 2, 4]
 ## Search 🟣
 
 ### Qué hace
-`binary_search` implementa una búsqueda binaria recursiva sobre listas
-ordenadas. Acepta una función `key` similar a la de `sorted` para extraer
-la clave de comparación de cada elemento.
+Proporciona dos algoritmos de búsqueda:
+
+- `binary_search`: búsqueda binaria recursiva para listas **ordenadas**. Acepta una función `key` (como `sorted`) para extraer la clave de comparación de cada elemento.
+- `linear_search`: búsqueda lineal secuencial que funciona sobre listas **no ordenadas** y devuelve la primera ocurrencia que coincida según la `key`.
 
 ### Cómo se comporta (detalle) 🔍
-- Requiere que la lista de entrada esté ordenada según la misma `key` usada
-	en la búsqueda.
-- Devuelve el índice del elemento encontrado, o `-1` si no se encuentra.
+
+**Binary Search (búsqueda binaria):**
+- Requiere que la lista esté ordenada según la misma `key` usada en la búsqueda.
+- Implementación recursiva que busca en el rango [`0`, `len(arr)-1`].
+- Devuelve el índice del elemento encontrado, o `-1` si no existe.
+- Complejidad temporal: O(log n) en promedio.
 - Lanza `IndexError` si la lista proporcionada está vacía.
 
-### Firma
+**Linear Search (búsqueda lineal):**
+- No requiere lista ordenada; itera de forma secuencial y devuelve el índice de la primera coincidencia.
+- Devuelve `-1` si no encuentra ninguna coincidencia.
+- Complejidad temporal: O(n).
+- Lanza `IndexError` si la lista proporcionada está vacía.
+
+### Firmas
 - `binary_search(arr: list[T], key: Callable[[T], Any], item: T) -> int`
+- `linear_search(arr: list[T], key: Callable[[T], Any], item: T) -> int`
 
 ### Ejemplo (rápido) 🧪
 ```python
 from app.utils import binary_search
-
+# Busqueda Binaria
 print(binary_search([1,2,3,4], key=lambda x: x, item=3))  # -> 2
 users = [{'id':'001'},{'id':'002'},{'id':'003'}]
 print(binary_search(users, key=lambda x: x['id'], item={'id':'002'}))  # -> 1
+
+# Búsqueda lineal
+unordered = [5, 2, 8, 1, 9]
+print(linear_search(unordered, key=lambda x: x, item=8))  # -> 2
 ```
 
 ---
