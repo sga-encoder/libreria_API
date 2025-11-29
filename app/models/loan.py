@@ -13,7 +13,7 @@ class Loan:
         self.__set_id(id)
         self.set_user(user)
         self.set_book(book)
-        self.set_loanDate(loanDate)
+        self.set_loanDate(loanDate) 
         
     @classmethod
     def from_dict(cls, data: dict):
@@ -29,17 +29,11 @@ class Loan:
             loan_date = datetime.fromisoformat(s)
         else:
             loan_date = None
-            
         return cls(
-            user= User.default(),
-            book= Book.default(),
-            loanDate=loan_date
+             user=User.from_dict(data["user"]),
+             book=Book.from_dict(data["book"]),
+             loanDate=datetime.fromisoformat(data["loanDate"])
         )
-        # return cls(
-        #     user=User.from_dict(data["user"]),
-        #     book=Book.from_dict(data["book"]),
-        #     loanDate=datetime.fromisoformat(data["loanDate"])
-        # )
         
     def get_id(self):
         return self.__id

@@ -7,7 +7,7 @@ loan_router = APIRouter(
     prefix="/loan",
     tags=["loan"]
 )
-loan_crud = CRUDLoan(Library.get_loanRecords, Library.get_reservationsQueue())
+loan_crud = CRUDLoan(Library.get_loanRecords(), Library.get_reservationsQueue(), Library.get_user())
 @loan_router.post("/")
 def create(loan: LoanCreate):
     data = loan_crud.create(loan)
