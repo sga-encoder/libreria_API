@@ -1,21 +1,15 @@
-import os
 import requests
 import random
-from dotenv import load_dotenv
+from app.core import settings
 
-# Cargar variables de entorno desde un archivo `.env` (si existe)
-load_dotenv()
 
-# Leer la clave de Google Books desde la variable de entorno
-GOOGLE_BOOKS_API_KEY = os.getenv("GOOGLE_BOOKS_API_KEY")
-
-def search_book_by_BookAPI(query):
-    if not GOOGLE_BOOKS_API_KEY:
+def search_book(query):
+    if not settings.GOOGLE_BOOKS_API_KEY:
         raise RuntimeError(
             "La variable de entorno `GOOGLE_BOOKS_API_KEY` no está configurada. "
             "Copia `.env.example` a `.env` y establece la clave."
         )
-    url = f"https://www.googleapis.com/books/v1/volumes?q={query}&key={GOOGLE_BOOKS_API_KEY}"
+    url = f"https://www.googleapis.com/books/v1/volumes?q={query}&key={settings.GOOGLE_BOOKS_API_KEY}"
     resp = requests.get(url)
     resp.raise_for_status()
     data_resp = resp.json().get("items", [])

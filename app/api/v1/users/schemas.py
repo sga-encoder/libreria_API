@@ -1,6 +1,5 @@
 from pydantic import BaseModel
 from typing import Optional
-from app.models.enums import PersonRole
 
 # Modelo completo para POST (todos los campos requeridos)
 class UserCreate(BaseModel):

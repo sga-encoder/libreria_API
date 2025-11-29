@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import book_router, loan_router, user_router, auth_router
+from app.api.v1 import book_router, loan_router, user_router, auth_router
 
 
 app = FastAPI()

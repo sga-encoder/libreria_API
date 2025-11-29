@@ -1,0 +1,2 @@
+class LoanAPIService:
+    pass
