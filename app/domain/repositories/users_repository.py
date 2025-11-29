@@ -1,7 +1,8 @@
-from app.crud.interface import ICrud
-from app.models import User
+from app.domain.repositories import RepositoriesInterface
+from app.domain.models import User
 
-class CRUDUser(ICrud):
+
+class UsersRepository(RepositoriesInterface[User]):
     def __init__(self, users: list[User]) -> None:
         self.__users = users
 

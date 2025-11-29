@@ -3,7 +3,7 @@ from typing import Generic, TypeVar, Optional, List
 
 T = TypeVar('T')
 
-class ICrud(ABC, Generic[T]):
+class RepositoriesInterface(ABC, Generic[T]):
     """
     Interfaz genérica para operaciones CRUD.
     """

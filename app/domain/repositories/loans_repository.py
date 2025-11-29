@@ -1,13 +1,11 @@
-from app.crud.interface import ICrud
-from app.models import Loan
-from app.services.library import Library
-from app.models.user import User
-from app.models.book import Book
 from typing import Optional
-from app.utils.queue import Queue
+from app.domain.models import Loan, Book, User
+from app.domain.repositories import RepositoriesInterface
+from app.domain.structures import Queue
+from app.services.library import Library
 from app.utils import FileManager, FileType
 
-class CRUDLoan(ICrud[Loan]):
+class LoansRepository(RepositoriesInterface[Loan]):
 
     def __init__(self, loansRecords: list[Loan], resevacionQueue, users) -> None:
         self.__loans = loansRecords
@@ -194,7 +192,7 @@ class CRUDLoan(ICrud[Loan]):
                         reserved_user, reserved_book = reservation
                         if reserved_book.get_id_IBSN() == book.get_id_IBSN():
                             print("There is a reservation for this book. Assigning to the next user in the queue.")
-                            created = CRUDLoan.create(self, json, reserved_user, reserved_book)
+                            created = LoansRepository.create(self, json, reserved_user, reserved_book)
                             if created is not None:
                                 # eliminar la reserva encontrada
                                 rq.pop(idx)
@@ -250,7 +248,7 @@ class CRUDLoan(ICrud[Loan]):
                     return None
 
                 # Crear el nuevo préstamo y devolverlo (create ya sincroniza Library y self.__loans)
-                created = CRUDLoan.create(self, json, user, book_found)
+                created = LoansRepository.create(self, json, user, book_found)
                 if created is not None:
                     return created
                 return None
@@ -283,7 +281,7 @@ class CRUDLoan(ICrud[Loan]):
                         reserved_user, reserved_book = reservation
                         if reserved_book.get_id_IBSN() == book.get_id_IBSN():
                             print("There is a reservation for this book. Assigning to the next user in the queue.")
-                            created = CRUDLoan.create(self, {}, reserved_user, reserved_book)
+                            created = LoansRepository.create(self, {}, reserved_user, reserved_book)
                             if created is not None:
                                 rq.pop(idx)
                             break

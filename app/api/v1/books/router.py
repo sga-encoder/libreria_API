@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
-from app.schemas import BookCreate, BookUpdate
-from app.crud import CRUDBook
+from . import BookCreate, BookUpdate
+from app.domain.repositories import BooksRepository
 from app.services import search_book_by_BookAPI
 
 book_router = APIRouter(
@@ -8,7 +8,7 @@ book_router = APIRouter(
     tags=["book"]
 )
 
-book_crud = CRUDBook('data/json/books.json')
+book_crud = BooksRepository('data/json/books.json')
 
 @book_router.post("/")
 def create(book: BookCreate):

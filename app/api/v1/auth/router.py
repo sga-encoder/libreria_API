@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.schemas import AuthLogin
+from . import AuthLogin
 
 auth_router = APIRouter(
     prefix="/auth",

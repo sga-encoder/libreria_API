@@ -1,5 +1,5 @@
 from datetime import datetime
-from .user import User
+from . import User
 from .book import Book
 from app.utils import generate_id
 

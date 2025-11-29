@@ -1,6 +1,6 @@
 from fastapi import APIRouter
-from app.schemas import UserCreate, UserUpdate
-from app.crud import CRUDUser
+from . import UserCreate, UserUpdate
+from app.domain.repositories import UsersRepository
 from app.services import Library
 
 
@@ -10,7 +10,7 @@ user_router = APIRouter(
 )
 
 
-user_crud = CRUDUser(Library.get_user())
+user_crud = UsersRepository(Library.get_user())
 
 
 @user_router.get("/")

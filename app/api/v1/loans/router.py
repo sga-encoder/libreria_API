@@ -1,13 +1,13 @@
 from fastapi import APIRouter
-from app.schemas import LoanCreate, LoanUpdate
-from app.crud import CRUDLoan
+from . import LoanCreate, LoanUpdate
+from app.domain.repositories import LoansRepository
 from app.services import Library
 
 loan_router = APIRouter(
     prefix="/loan",
     tags=["loan"]
 )
-loan_crud = CRUDLoan(Library.get_loanRecords(), Library.get_reservationsQueue(), Library.get_user())
+loan_crud = LoansRepository(Library.get_loanRecords(), Library.get_reservationsQueue(), Library.get_user())
 @loan_router.post("/")
 def create(loan: LoanCreate):
     data = loan_crud.create(loan)

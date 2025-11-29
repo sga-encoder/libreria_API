@@ -1,9 +1,11 @@
-from app.models import Book
-from app.crud.interface import ICrud
-from app.utils import Stack, FileManager, FileType, insert_sort, binary_search
+from app.domain.models import Book
+from app.domain.repositories import RepositoriesInterface
+from app.domain.structures import Stack
+from app.domain.algorithms import insert_sort, binary_search
+from app.utils import FileManager, FileType
 from app.services import Library
 
-class CRUDBook(ICrud[Book]):
+class BooksRepository(RepositoriesInterface[Book]):
     __file : FileManager
     
     def __init__(self, url: str) -> None:
@@ -65,4 +67,3 @@ class CRUDBook(ICrud[Book]):
     def delete(self, id: str) -> bool:
         print("implementando delete en CRUDBook")
         return True
-    
