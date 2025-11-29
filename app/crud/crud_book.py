@@ -1,9 +1,7 @@
 from app.models import Book
 from app.crud.interface import ICrud
-from app.utils import Stack, FileManager, FileType
+from app.utils import Stack, FileManager, FileType, insert_sort, binary_search
 from app.services import Library
-
-
 
 class CRUDBook(ICrud[Book]):
     __file : FileManager
@@ -14,15 +12,16 @@ class CRUDBook(ICrud[Book]):
         
         
     def load(self):
-        print("Cargando libros desde el archivo en CRUDBook")
         books_data = self.read_all()
         # Cargar los libros en el inventario de la biblioteca
         Library.set_inventary(books_data)
-        print(Library.get_inventary())
+        Library.set_order_inventary(insert_sort(
+            Library.get_inventary().to_list(),
+            key=lambda book: book.get_id_IBSN()
+        ))
         
         
     def create(self, json: dict) -> Book:
-        print("implementando create en CRUDBook")
         # Aceptar tanto dicts como modelos Pydantic (BookCreate)
         # Preferir model_dump() (Pydantic v2), caer a dict() si no existe
         if hasattr(json, "model_dump"):
@@ -31,12 +30,13 @@ class CRUDBook(ICrud[Book]):
             data = json
             
         instance = Book.from_dict(data)
-        
-            
         self.__file.append(instance.to_dict())
         Library.push_inventary(instance)
-        
-            
+        order = insert_sort(
+            Library.get_inventary().to_list(),
+            key=lambda book: book.get_id_IBSN()
+        )
+        Library.set_order_inventary(order)
         return instance
     
     def read(self, id):
