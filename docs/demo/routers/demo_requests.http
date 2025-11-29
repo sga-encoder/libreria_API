@@ -30,7 +30,11 @@ Content-Type: application/json
 }
 
 ### Book - Create by ISBN
-POST {{host}}/book/ISBN/9780547928210
+POST {{host}}/book/ISBN/9780553897845
+
+
+### Book - Create by ISBN 2
+POST {{host}}/book/ISBN/9789589760451
 
 ### Book - Read by ISBN
 GET {{host}}/book/978-1
