@@ -80,12 +80,12 @@ firmas reales en `app.models`.
 
 ## Buenas prácticas y notas ⚠️
 - `Library` guarda el estado en memoria: si la aplicación debe persistir datos
-	entre ejecuciones, combine estos servicios con `app.utils.FileManager` u
-	otra capa de persistencia.
+  entre ejecuciones, combine estos servicios con `app.utils.FileManager` u
+  otra capa de persistencia.
 - Evite instanciar `Library` (no es instanciable). Use siempre métodos de clase.
 - Reemplazar colecciones con los setters es la forma prevista para cargar
-	estados completos (p. ej. desde JSON) en lugar de manipular atributos
-	privados directamente.
+  estados completos (p. ej. desde JSON) en lugar de manipular atributos
+  privados directamente.
 
 ---
 
