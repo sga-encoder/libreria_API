@@ -158,12 +158,10 @@ class CRUDLoan(ICrud[Loan]):
                     print(f"Warning: failed to parse loan from dict: {e}")
                     continue
             
-            # Sincronizar Library con los loans leídos (son autoridad de verdad)
+            # Sincronizar Library con los loans leídos
             if loans_list:
                 Library.set_loanRecords(loans_list)
                 self.__loans = loans_list
-            
-            # Devolver la lista de objetos Loan
             return loans_list
 
         # Fallback: si no hay archivo o está vacío, devolver objetos Loan en memoria
@@ -223,7 +221,7 @@ class CRUDLoan(ICrud[Loan]):
                 except Exception:
                     pass
 
-                # Usar new_book_id si fue pasado; no usar input() para ser testable
+                # Usar new_book_id si fue pasado
                 if new_book_id is None:
                     print("No new_book_id provided for update; aborting.")
                     return None
