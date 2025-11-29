@@ -135,6 +135,95 @@ print(s.to_list())# -> ['alice']
 
 ---
 
+## Sorting 🟡
+
+### Qué hace
+`insert_sort` implementa el algoritmo de ordenamiento por inserción
+adaptado para aceptar una función `key` (como `sorted`) y la opción de
+añadir un elemento adicional (`item`) que será incluido antes de ordenar.
+
+### Cómo se comporta (detalle) 🔍
+- No modifica la lista original; devuelve una nueva lista ordenada.
+- Orden ascendente según la clave devuelta por `key`.
+- Si `item` se pasa, se añade a la copia antes de ordenar.
+
+### Firma
+- `insert_sort(arr: list[T], key: Callable[[T], Any], item: T | None = None) -> list[T]`
+
+### Propiedades
+- Estable: preserva el orden relativo de elementos con la misma clave.
+- Complejidad temporal: O(n^2) en el peor caso.
+
+### Ejemplo (rápido) 🧪
+```python
+from app.utils import insert_sort
+
+# Números
+print(insert_sort([3, 1, 2], key=lambda x: x))  # -> [1, 2, 3]
+
+# Lista de dicts por clave
+items = [{'v': 2}, {'v': 1}, {'v': 3}]
+print(insert_sort(items, key=lambda x: x['v']))  # -> [{'v':1}, {'v':2}, {'v':3}]
+
+# Usando el parámetro `item`
+print(insert_sort([1, 4], key=lambda x: x, item=2))  # -> [1, 2, 4]
+```
+
+---
+
+## Search 🟣
+
+### Qué hace
+`binary_search` implementa una búsqueda binaria recursiva sobre listas
+ordenadas. Acepta una función `key` similar a la de `sorted` para extraer
+la clave de comparación de cada elemento.
+
+### Cómo se comporta (detalle) 🔍
+- Requiere que la lista de entrada esté ordenada según la misma `key` usada
+	en la búsqueda.
+- Devuelve el índice del elemento encontrado, o `-1` si no se encuentra.
+- Lanza `IndexError` si la lista proporcionada está vacía.
+
+### Firma
+- `binary_search(arr: list[T], key: Callable[[T], Any], item: T) -> int`
+
+### Ejemplo (rápido) 🧪
+```python
+from app.utils import binary_search
+
+print(binary_search([1,2,3,4], key=lambda x: x, item=3))  # -> 2
+users = [{'id':'001'},{'id':'002'},{'id':'003'}]
+print(binary_search(users, key=lambda x: x['id'], item={'id':'002'}))  # -> 1
+```
+
+---
+
+## Lexicographical ID 🟤
+
+### Qué hace
+El módulo `lexicographical_id` expone `generate_id()`, que crea IDs
+como cadenas con formato `{epoch_ms:013d}{suffix:04d}`. El prefijo de
+timestamp en milisegundos garantiza que comparar las IDs como cadenas
+respecte el orden temporal (orden lexicográfico).
+
+### Cómo se comporta (detalle) 🔍
+- El sufijo de 4 dígitos evita colisiones al generar múltiples IDs en
+	rápida sucesión dentro del mismo proceso (usa un lock para seguridad
+	en entornos multihilo).
+- Para unicidad entre procesos use ULID/KSUID o un coordinador externo.
+
+### Firma
+- `generate_id() -> str`
+
+### Ejemplo (rápido) 🧪
+```python
+from app.utils import generate_id
+
+print(generate_id())
+ids = [generate_id() for _ in range(3)]
+print(sorted(ids))  # orden lexicográfico == orden temporal
+```
+
 ## Ejecutar los demos ▶️
 
 Los demos se encuentran en `docs/demo/utils/` y están pensados para ejecutarse
@@ -146,6 +235,9 @@ desde la raíz del proyecto. Ejemplos (PowerShell):
 ; python -m docs.demo.utils.demo_filemanager
 ; python -m docs.demo.utils.demo_queue
 ; python -m docs.demo.utils.demo_stack
+; python -m docs.demo.utils.demo_sorting
+; python -m docs.demo.utils.demo_search
+; python -m docs.demo.utils.demo_lexicographical_id
 ```
 
 [⬆ Volver al inicio](#top)

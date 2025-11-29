@@ -48,14 +48,33 @@ comportamiento es mayormente de demo: imprimen mensajes y devuelven valores
 simulados (`to_dict` aplicado a dicts, `True`, o simplemente el id recibido).
 
 ### CRUDBook
-- Constructor: `CRUDBook(books: list[Book], orderBooks: list[Book])`
-- Comportamiento actual:
-  - `create(json)` — imprime y devuelve `Book.to_dict(json)` (posible bug:
-    `Book.to_dict` es un método de instancia, no un factory estático).
-  - `read(id)` — imprime y devuelve `id`.
-  - `read_all()` — devuelve la lista interna `__books`.
-  - `update(id, json)` — añade `id` al json y devuelve `Book.to_dict(json)`.
-  - `delete(id)` — imprime y devuelve `True`.
+Estado actual tras la última actualización del módulo `CRUDBook`:
+
+- Constructor: ahora recibe una URL de archivo y usa `FileManager(url, FileType.JSON)`; llama a `load()` para poder inicializar el inventario.
+- `load()`: lee todos los libros desde el archivo (vía `FileManager`), crea objetos `Book` y:
+  - carga el inventario en `Library` (`Library.set_inventary(...)`),
+  - crea y guarda un inventario ordenado usando `insert_sort(...)` por `book.get_id_IBSN()`.
+- `create(json)`: acepta dicts o modelos Pydantic, crea un `Book` con `Book.from_dict`, añade la entrada al archivo (`FileManager.append(...)`), actualiza el inventario en `Library` y recalcula el inventario ordenado con `insert_sort`.
+- `read_all()`: implementado; lee todos los libros del archivo y los devuelve como `Stack[Book]`.
+
+Pendientes (stubs actualmente)
+- `read(id)`: método presente pero no implementado — actualmente imprime y retorna el id.
+- `update(id, json)`: método presente pero no implementado — actualmente transforma el payload y construye un `Book` temporal sin persistir ni actualizar estructuras.
+- `delete(id)`: método presente pero no implementado — actualmente imprime y retorna `True`.
+
+Motivo de la falta de implementación completa
+- Estas operaciones (`read`, `update`, `delete`) requieren localizar un libro concreto dentro del inventario persistido en archivo o en la estructura `Stack[Book]`. Falta por integrar el algoritmo de búsqueda lineal solicitado (búsqueda por `id_IBSN`) que permita:
+  - localizar la posición/objeto para lectura,
+  - modificar y persistir cambios (update),
+  - eliminar la entrada del archivo y del inventario (delete).
+
+Recomendación breve
+- Implementar una función `linear_search(collection, key, target) -> Optional[index/object]` en el módulo de utilidades (por ejemplo `app.utils` o `algorithms/search.py`) y usarla desde `CRUDBook.read/update/delete` para localizar el libro por `id_IBSN`.
+- Tras localizar el registro:
+  - `read` debe devolver el `Book` encontrado o `None`,
+  - `update` debe aplicar cambios, persistir el archivo y actualizar `Library` y el inventario ordenado,
+  - `delete` debe eliminar del archivo y actualizar `Library` y el inventario ordenado.
+
 
 ### CRUDLoan
 - Constructor: `CRUDLoan(loansRecords: list[Loan], resevacionQueue)`

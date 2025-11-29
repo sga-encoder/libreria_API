@@ -12,22 +12,29 @@ cómo crearlas y cómo serializarlas). ✅
 
 ### Qué hace
 `Person` es la clase base para entidades humanas (usuarios y administradores).
-Provee campos básicos (id, nombre, email, password, role) y utilidades de
-serialización.
+Provee campos básicos (`id`, `fullName`, `email`, `password`, `role`) y
+utilidades de creación/serialización y gestión segura de contraseñas.
 
 ### Campos / firma
-- `__init__(id: str, fullName: str, email: str, password: str, role: PersonRole)`
+- `__init__(fullName: str, email: str, password: str, role: PersonRole, id: str = None)`
 
 Propiedades principales accesibles vía getters:
 - `get_id()`
 - `get_fullName()`
 - `get_email()`
-- `get_password()`
+- `get_password()`  : retorna el hash de la contraseña, no el texto plano.
 - `get_role()`
 
+### Comportamiento / validaciones
+- **Nombre (`fullName`)**: no puede estar vacío ni solo espacios; longitud mínima 3 y máxima 50.
+- **Email**: validado con una regex simple (`local@domain.tld`).
+- **Password**: se guarda como hash usando `werkzeug.security.generate_password_hash`.
+
 ### Métodos importantes
-- `from_dict(data: dict) -> Person` — construye desde un diccionario.
-- `to_dict() -> dict` — serializa, usando `role.name` para el enum.
+- `from_dict(data: dict) -> Person` — construye desde un diccionario. El campo `role` debe ser el nombre del enum (ej. `"USER"`) ya que internamente se hace `PersonRole[data.get("role")]`.
+- `to_dict() -> dict` — serializa a dict; `password` contiene el hash y `role` se exporta con `role.name`.
+- `verify_password(password: str) -> bool` — verifica un password contra el hash almacenado.
+- `change_password(current_password: str, new_password: str) -> bool` — cambia el password si la verificación es correcta.
 - `__str__()` / `__repr__()` — representaciones legibles para logging/debug.
 
 ### Ejemplo 🧪
@@ -35,7 +42,7 @@ Propiedades principales accesibles vía getters:
 from app.models import Person
 from app.models.enums import PersonRole
 
-p = Person(id='u1', fullName='Alice', email='alice@example.com', password='pw', role=PersonRole.USER)
+p = Person(fullName='Alice', email='alice@example.com', password='pw', role=PersonRole.USER)
 print(p.get_fullName())
 print(p.to_dict())
 ```
@@ -45,23 +52,24 @@ print(p.to_dict())
 ## User 👥
 
 ### Qué hace
-`User` hereda de `Person` e incorpora la lista de préstamos (`loans`). Es
-la representación en el dominio de un usuario de la biblioteca.
+`User` hereda de `Person` e incorpora la lista de préstamos (`loans`). Mantiene
+préstamos en memoria como una lista y añade utilidades para gestionarlos.
 
 ### Campos / firma
-- `__init__(id: str, fullName: str, email: str, password: str, loans: list)`
+- `__init__(fullName: str, email: str, password: str, loans: list, id: str = None)`
 
-Métodos relevantes:
-- `from_dict(data: dict) -> User`
-- `get_loans() -> list`
-- `add_loan(loan)` / `remove_loan(loan)` — gestionar préstamos en memoria.
-- `to_dict()` incluye el campo `loans` (tal como está en memoria).
+Comportamiento y detalles:
+- Los `loans` se almacenan en un atributo privado (`__loans`) y pueden ser accedidos con `get_loans()`.
+- `add_loan(loan)` y `remove_loan(loan)` modifican la lista en memoria.
+- `from_dict(data: dict) -> User` — construye un `User` desde un diccionario (espera `loans` opcionalmente).
+- `to_dict()` incluye el campo `loans` tal como está en memoria (útil para persistencia simple).
+- Se sobreescriben `__str__()` y `__repr__()` para mostrar información concisa del usuario y la cantidad de préstamos.
 
 ### Ejemplo 🧪
 ```python
 from app.models import User
 
-u = User(id='u1', fullName='Bob', email='bob@example.com', password='pw', loans=[])
+u = User(fullName='Bob', email='bob@example.com', password='pw', loans=[])
 u.add_loan({'id':'loan-1'})
 print(u.get_loans())
 ```
