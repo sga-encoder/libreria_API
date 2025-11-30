@@ -37,21 +37,21 @@ POST {{host}}/book/ISBN/9780553897845
 POST {{host}}/book/ISBN/9789589760451
 
 ### Book - Read by ISBN
-GET {{host}}/book/978-1
+GET {{host}}/book/9789589760451
 
 ### Book - Read all
 GET {{host}}/book/
 
 ### Book - Patch
-PATCH {{host}}/book/978-1
+PATCH {{host}}/book/9789589760451
 Content-Type: application/json
 
 {
-  "title": "Nuevo título"
+  "title": "Viaje Al Centro de la Tierra"
 }
 
 ### Book - Delete
-DELETE {{host}}/book/978-1
+DELETE {{host}}/book/9789589760451
 
 
 ### User - Create

@@ -1,5 +1,5 @@
-from app.models import Book, User, Loan
-from app.utils import Stack, Queue
+from app.domain.models import Book, User, Loan
+from app.domain.structures import Stack, Queue
 
 
 class Library:
