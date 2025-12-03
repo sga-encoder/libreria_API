@@ -95,7 +95,7 @@ class Book:
         )
         
     @classmethod
-    def from_search_api(cls, id: str = "", title: str = "", author: str = ""):
+    def from_search_api(cls, id: str ="0000000000000", title: str = "Gum Guardians Story", author: str = "Adventure Time"):
         """
         Crea una instancia de Book a partir de un diccionario obtenido
         de una API externa (por ejemplo, Google Books API).
@@ -109,11 +109,11 @@ class Book:
             id,
             title,
             author,
-            "OTHER",
-            "0.0",
-            "10000",
-            "hola",
-            "hola",
+            "Fiction",
+            4.0,
+            100000.0,
+            "las aventuras de de los guardianes del chicle",
+            "las fotos son para las locas",
             False
         )
             
@@ -125,14 +125,14 @@ class Book:
         Útil para pruebas o valores placeholder.
         """
         return cls(
-            id_IBSN="0000",
-            title="Default Title",
-            author="Default Author",
-            gender="OTHER",
-            weight=0.0,
-            price=0.0,
-            description="",
-            frond_page_url="",
+            id_IBSN="0000000000000",
+            title="Aventure Time",
+            author="Cartoon Network",
+            gender="Fiction",
+            weight=4.0,
+            price=100000.0,
+            description="el mejor libro del mundo",
+            frond_page_url="las fotos son para las locas",
             is_borrowed=False
         )
 
@@ -290,13 +290,13 @@ class Book:
         Reglas:
         - Si `self` y `other` son la misma instancia, devuelve True.
         - Si `other` no es instancia de Book, devuelve False.
-        - Si ambos tienen `__id_IBSN`, se comparan esos identificadores.
+        - Devuelve True si al menos uno de los siguientes coincide: id_IBSN, title, author.
         """
         if self is other:
             return True
         if not isinstance(other, Book):
             return False
 
-        # Si ambos tienen id, usarlo como identidad
-        if getattr(self, "__id_IBSN", None) and getattr(other, "__id_IBSN", None):
-            return self.__id_IBSN == other.__id_IBSN
+        return (self.__id_IBSN == other.__id_IBSN or
+                self.__title == other.__title or
+                self.__author == other.__author)
