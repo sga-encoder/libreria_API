@@ -10,6 +10,7 @@ from enum import Enum
 from pathlib import Path
 import json
 import csv
+import os
 
 class FileType(Enum):
     """Tipos de archivo soportados por FileManager."""
@@ -113,11 +114,22 @@ class FileManager:
         Returns:
             dict | list: representación Python del JSON leído.
         """
-        with file_path.open('r', encoding='utf-8') as f:
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
-                # actualizar caché interna
-                self.__content = data
                 return data
+        except FileNotFoundError:
+            # Crear directorio si no existe
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            # Crear archivo con lista vacía
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump([], f)
+            return []
+        except json.JSONDecodeError:
+            # Si el archivo existe pero está vacío o inválido, inicializar con []
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump([], f)
+            return []
             
     def __read_csv(self,file_path) -> list[dict]:
         """Lee CSV desde `file_path`, actualiza la caché interna y devuelve una lista de filas.
