@@ -1,3 +1,17 @@
+# Utilidades y helpers
+
+Resumen
+- `app/utils/` contiene utilidades reutilizables: manejo de ficheros, generación de IDs, estructuras auxiliares.
+
+Archivos clave
+- `app/utils/file_manager.py` - Lectura/escritura de JSON/CSV.
+- `app/utils/lexicographical_id.py` - Generador de IDs legibles.
+
+Demos
+- `docs/demo/utils/` contiene demos para `filemanager`, `queue`, `stack`, `sorting`, `search`, `lexicographical_id`.
+
+Consejos
+- Si actualizas la firma de `FileManager`, actualiza los demos en `docs/demo/utils`.
 [⬆ Volver al inicio](#top)
 # Utils
 Este documento resume las utilidades del paquete `app.utils`, con firmas de

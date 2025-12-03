@@ -1,110 +1,141 @@
 @host = http://localhost:8000
+@token = <YOUR_ACCESS_TOKEN_HERE>
 
-### Auth - Login
-POST {{host}}/auth/login
-Content-Type: application/json
+### =============================================================================
+### AUTENTICACIÓN
+### =============================================================================
 
-{
-  "email": "user@example.com",
-  "password": "s3cret"
-}
+### Login (OAuth2 password flow) - Obtener token de acceso
+POST {{host}}/api/v1/auth/token
+Content-Type: application/x-www-form-urlencoded
 
-### Auth - Logout
-POST {{host}}/auth/logout
+username=admin&password=secret
 
+> {%
+client.global.set("token", JSON.parse(response.body).access_token);
+%}
 
-### Book - Create
-POST {{host}}/book/
-Content-Type: application/json
+### =============================================================================
+### USUARIOS (Users)
+### =============================================================================
 
-{
-  "id_IBSN": "978-1",
-  "title": "Sam and Cat",
-  "author": "Disney XD",
-  "gender": "ACCION",
-  "weight": 0.5,
-  "price": 9.99,
-  "description": "A fun book about Sam and Cat's adventures.",
-  "frond_page_url": "http://example.com/frond_page.jpg",
-  "is_borrowed": false
-}
-
-### Book - Create by ISBN
-POST {{host}}/book/ISBN/9780553897845
-
-
-### Book - Create by ISBN 2
-POST {{host}}/book/ISBN/9789589760451
-
-### Book - Read by ISBN
-GET {{host}}/book/9789589760451
-
-### Book - Read all
-GET {{host}}/book/
-
-### Book - Patch
-PATCH {{host}}/book/9789589760451
-Content-Type: application/json
-
-{
-  "title": "Viaje Al Centro de la Tierra"
-}
-
-### Book - Delete
-DELETE {{host}}/book/9789589760451
-
-
-### User - Create
+### Crear usuario 1
 POST {{host}}/user/
 Content-Type: application/json
 
 {
-  "fullName": "Alice",
-  "email": "alice@example.com",
-  "password": "secret"
+  "fullName": "Juan Pérez",
+  "email": "juan.perez@example.com",
+  "password": "password123"
 }
 
-### User - Read all
-GET {{host}}/user/all
-
-### User - Read
-GET {{host}}/user/1054861024
-
-### User - Patch
-PATCH {{host}}/user/1054861024
+### Crear usuario 2
+POST {{host}}/user/
 Content-Type: application/json
 
 {
-  "email": "alice@newdomain.com"
+  "fullName": "María García",
+  "email": "maria.garcia@example.com",
+  "password": "password456"
 }
 
-### User - Delete
-DELETE {{host}}/user/alice
+### Crear usuario 3
+POST {{host}}/user/
+Content-Type: application/json
 
+{
+  "fullName": "Carlos López",
+  "email": "carlos.lopez@example.com",
+  "password": "password789"
+}
 
-### Loan - Create
+### Leer usuario por ID (usar ID de usuario creado)
+GET {{host}}/user/17647805201590003
+
+### Leer todos los usuarios
+GET {{host}}/user/
+
+### Actualizar usuario
+PATCH {{host}}/user/17647860658830003
+Content-Type: application/json
+
+{
+  "email": "juan.nuevo@example.com"
+}
+
+### Eliminar usuario
+DELETE {{host}}/user/17647805133370001
+
+### =============================================================================
+### LIBROS (Books)
+### =============================================================================
+
+### Crear libro (requiere autenticación)
+POST {{host}}/book/
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id_IBSN": "978-1234567890",
+  "title": "El Gran Libro",
+  "author": "Autor Ejemplo",
+  "gender": "FICCION",
+  "weight": 1.2,
+  "price": 19.99,
+  "description": "Un libro muy interesante.",
+  "frond_page_url": "http://example.com/portada.jpg",
+  "is_borrowed": false
+}
+
+### Crear libro por ISBN (desde API externa)
+POST {{host}}/book/ISBN/9780553897845
+
+### Leer libro por ISBN
+GET {{host}}/book/9780553897845
+
+### Leer todos los libros
+GET {{host}}/book/
+
+### Actualizar libro (requiere autenticación)
+PATCH {{host}}/book/9780553897845
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "El Gran Libro - Edición Revisada"
+}
+
+### Eliminar libro (requiere autenticación)
+DELETE {{host}}/book/9780553897845
+Authorization: Bearer {{token}}
+
+### =============================================================================
+### PRÉSTAMOS (Loans)
+### =============================================================================
+
+### Crear préstamo
 POST {{host}}/loan/
 Content-Type: application/json
 
 {
-  "user": "alice",
-  "book": "978-1",
-  "loanDate": "2025-11-25T00:00:00Z"
+  "user": "1234567890",
+  "book": "978-1234567890",
+  "loanDate": "2025-12-03T10:00:00Z"
 }
 
-### Loan - Read
-GET {{host}}/loan/184949494
+### Leer préstamo por ID
+GET {{host}}/loan/1
 
-### Loan - Read all
+### Leer todos los préstamos
 GET {{host}}/loan/
 
-### Loan - Patch
-PATCH {{host}}/loan/184949494
+### Actualizar préstamo
+PATCH {{host}}/loan/1
 Content-Type: application/json
 
 {
-  "loanDate": "2025-12-01T00:00:00Z"
+  "loanDate": "2025-12-04T10:00:00Z"
 }
 
-### Loan - Delete
-DELETE {{host}}/loan/184949494
+### Eliminar préstamo
+DELETE {{host}}/loan/1

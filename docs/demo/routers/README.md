@@ -1,3 +1,23 @@
+# Demo de peticiones HTTP (routers)
+
+Este README sirve como guía rápida para usar `docs/demo/routers/demo_requests.http`.
+
+Pasos rápidos
+1. Inicia la aplicación:
+```powershell
+python -m uvicorn main:app --reload
+```
+2. Abre `docs/demo/routers/demo_requests.http` en VSCode.
+3. Usa la extensión REST Client para enviar peticiones.
+
+Variables útiles dentro del archivo de peticiones
+- `@host = http://localhost:8000`
+- `@token` - Se rellena tras hacer login y obtener el token.
+
+Endpoints de ejemplo incluidos
+- Crear usuario, login, crear libro, crear préstamo, listar préstamos.
+
+Si alguna petición falla, comprueba que las rutas/params coincidan con `app/api/v1`.
 Demo: Peticiones para los routers usando REST Client (VS Code)
 
 Cómo usar
