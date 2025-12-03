@@ -1,8 +1,8 @@
 from typing import Optional
 from app.domain.models import Loan, Book, User
-from app.domain.repositories import RepositoriesInterface
+from .interface import RepositoriesInterface
 from app.domain.structures import Queue
-from app.services.library import Library
+from .library import Library
 from app.utils import FileManager, FileType
 
 class LoansRepository(RepositoriesInterface[Loan]):

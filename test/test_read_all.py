@@ -9,7 +9,7 @@ from app.models.loan import Loan
 from app.models.user import User
 from app.models.book import Book
 from app.models.enums.book_gender import BookGender
-from app.services.library import Library
+from app.domain.repositories.library import Library
 from app.crud.crud_loan import CRUDLoan
 from datetime import datetime
 
