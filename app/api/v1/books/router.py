@@ -5,11 +5,11 @@ Proporciona endpoints para crear, leer, actualizar y eliminar libros.
 Cada función de ruta delega la lógica de negocio al BookAPIService y
 devuelve una respuesta JSON con un mensaje y los datos correspondientes.
 """
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from .services import BookAPIService
 from .schemas import BookCreate, BookUpdate
 from app.core import settings
-from app.domain.models import Book
+from app.dependencies import get_current_user
 
 book_router = APIRouter(
     prefix="/book",
@@ -19,7 +19,7 @@ book_router = APIRouter(
 
 book_service = BookAPIService(settings.DATA_PATH_INVENTARY)
 
-@book_router.post("/")
+@book_router.post("/", dependencies=[Depends(get_current_user)])
 def create(book: BookCreate):
     """
     Crear un nuevo libro usando los datos proporcionados.
@@ -30,7 +30,7 @@ def create(book: BookCreate):
     Retorna:
     - dict: Mensaje de éxito y representación del libro creado.
     """
-    data:Book = book_service.create(book)
+    data = book_service.create_book(book)
     return {"message": f'sea creado el libro satisfactoriamente',  "data": data.to_dict()}
 
 @book_router.post("/ISBN/{id_IBSN}")
@@ -44,7 +44,7 @@ def create_by_ISBN(id_IBSN: str):
     Retorna:
     - dict: Mensaje de éxito y representación del libro creado.
     """
-    data:Book = book_service.create_by_ISBN(id_IBSN)
+    data = book_service.create_book_by_ISBN(id_IBSN)
     return {"message": f'sea creado el libro satisfactoriamente',  "data": data.to_dict()}
 
 @book_router.get("/{id_IBSN}")
@@ -58,7 +58,7 @@ def read(id_IBSN: str):
     Retorna:
     - dict: Mensaje de éxito y representación del libro consultado.
     """
-    data:Book = book_service.read(id_IBSN)
+    data = book_service.read_book(id_IBSN)
     return {"message":  f"sea a leido el libro {id_IBSN} satisfactoriamente", "data": data.to_dict()}
 
 @book_router.get("/")
@@ -69,8 +69,8 @@ def read_all():
     Retorna:
     - dict: Mensaje de éxito y lista de libros (cada uno como dict).
     """
-    data:Book = book_service.read_all()
-    return {"message": f"se a leido satisfactoriamente todos los libros", "data": [b.to_dict() for b in data]}
+    data = book_service.read_all_books()
+    return {"message": f"se a leido satisfactoriamente todos los libros", "data": [book.to_dict() for book in data]}
 
 @book_router.patch("/{id_IBSN}")
 def update(id_IBSN: str, book: BookUpdate):
@@ -84,7 +84,7 @@ def update(id_IBSN: str, book: BookUpdate):
     Retorna:
     - dict: Mensaje de éxito y representación del libro actualizado.
     """
-    data:Book = book_service.update(id_IBSN, book)
+    data  = book_service.update_book(id_IBSN, book)
     return {"message": f"sea actualizado el libro con el {id_IBSN} satisfactoriamente", "data": data.to_dict()}
 
 @book_router.delete("/{id_IBSN}")
@@ -98,6 +98,6 @@ def delete(id_IBSN:str):
     Retorna:
     - dict: Mensaje de éxito y un booleano indicando la operación.
     """
-    data:Book = book_service.delete(id_IBSN)
-    return {"message": f"se elimino el libro con este {id_IBSN} satisfactoriamente",   "data": True}
+    data  = book_service.delete_book(id_IBSN)
+    return {"message": f"se elimino el libro con este {id_IBSN} satisfactoriamente",   "data": data}
 

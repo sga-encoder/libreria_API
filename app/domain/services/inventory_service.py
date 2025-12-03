@@ -8,7 +8,7 @@ Mantiene tanto la estructura de pila (inventario) como una lista ordenada.
 from app.domain.repositories import BooksRepository
 from app.domain.structures import Stack
 from app.domain.models import Book
-from app.domain.algorithms import insert_sort
+from app.domain.algorithms import insertion_sort
 
 class InventoryService:
     """
@@ -32,7 +32,7 @@ class InventoryService:
 
         No devuelve nada. En caso de error, inicializa inventario vacío.
         """
-        self.books_repository = BooksRepository(url)
+        self.__books_repository = BooksRepository(url)
         self.__load()
         
     def get_inventary(self) -> Stack[Book]:
@@ -52,24 +52,6 @@ class InventoryService:
             list[Book]: Lista de libros ordenada por ISBN.
         """
         return self.__order_inventary
-    
-    def set_inventary(self, inventary: Stack[Book]) -> None:
-        """
-        Establece la pila de inventario.
-
-        Args:
-            inventary (Stack[Book]): Nueva pila de libros.
-        """
-        self.__inventary = inventary
-        
-    def set_order_inventary(self, order_inventary: list[Book]) -> None:
-        """
-        Establece la lista de inventario ordenada.
-
-        Args:
-            order_inventary (list[Book]): Nueva lista ordenada de libros.
-        """
-        self.__order_inventary = order_inventary
         
     def __load(self):
         """
@@ -79,17 +61,16 @@ class InventoryService:
         En caso de error inicializa estructuras vacías y registra el error por consola.
         """
         try:
-            books_data = self.books_repository.read_all()
+            self.__inventary = self.__books_repository.read_all()
             # Cargar los libros en el inventario de la biblioteca
-            self.set_inventary(books_data)
-            self.set_order_inventary(insert_sort(
-                self.get_inventary().to_list(),
+            self.__order_inventary = insertion_sort(
+                self.__inventary.to_list(),
                 key=lambda book: book.get_id_IBSN()
-            ))
+            )
         except Exception as e:
             print(f"Error loading inventory: {e}")
-            self.set_inventary(Stack[Book]())
-            self.set_order_inventary([])
+            self.__inventary = Stack[Book]()
+            self.__order_inventary = []
         
     def add_book(self, json: dict) -> Book:
         """
@@ -104,20 +85,19 @@ class InventoryService:
         Lanza la excepción original si falla la creación en el repositorio.
         """
         try:
-            book = self.books_repository.create(json)
+            book = self.__books_repository.create(json)
             self.__inventary.push(book)
-            order = insert_sort(
-                self.get_inventary().to_list(),
+            self.__order_inventary = insertion_sort(
+                self.__inventary.to_list(),
                 key=lambda b: b.get_id_IBSN()
             )
-            self.set_order_inventary(order)
             #falta poner la logica de bookCase
             return book
         except Exception as e:
             print(f"Error adding book: {e}")
             raise e
     
-    def read_book(self, id_IBSN: str) -> Book:
+    def get_book_by_id(self, id_IBSN: str) -> Book:
         """
         Lee un libro por su ISBN.
 
@@ -128,7 +108,7 @@ class InventoryService:
             Book: Libro encontrado, o lanza/retorna la excepción en caso de error.
         """
         try:
-            book = self.books_repository.read(id_IBSN)
+            book = self.__books_repository.read(id_IBSN)
             return book
         except Exception as e:
             print(f"Error reading book: {e}")
@@ -143,7 +123,7 @@ class InventoryService:
             En caso de error devuelve la excepción.
         """
         try:
-            books = self.books_repository.read_all()
+            books = self.__books_repository.read_all()
             return books.to_list() if books else None
         except Exception as e:
             print(f"Error reading all books: {e}")
@@ -161,8 +141,7 @@ class InventoryService:
             Book: Libro actualizado, o la excepción en caso de error.
         """
         try:    
-            print('after update book:')
-            book = self.books_repository.update(id_IBSN, json)
+            book = self.__books_repository.update(id_IBSN, json)
             self.__load()
                 
             #falta poner la logica de bookCase
@@ -184,7 +163,7 @@ class InventoryService:
         """
         try:
             #fata no eliminar libros si aun estan prestados
-            result = self.books_repository.delete(id_IBSN)
+            result = self.__books_repository.delete(id_IBSN)
             if result:
                 self.__load()
             return result

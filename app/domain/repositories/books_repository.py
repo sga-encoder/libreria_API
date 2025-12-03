@@ -6,10 +6,10 @@ para lectura/escritura de datos en formato JSON y mantiene una caché
 local de los registros leídos.
 """
 from app.domain.models import Book
-from app.domain.repositories import RepositoriesInterface
 from app.domain.structures import Stack
 from app.utils import FileManager, FileType
 from app.domain.algorithms import linear_search
+from .interface import RepositoriesInterface
 
 class BooksRepository(RepositoriesInterface[Book]):
     """Repositorio de Book respaldado por un archivo JSON.
@@ -19,7 +19,7 @@ class BooksRepository(RepositoriesInterface[Book]):
     sincroniza con el archivo mediante FileManager.
     """
     __file : FileManager
-    _books_cache: list[Book]
+    __books: list[Book]
     
     def __init__(self, url: str) -> None:
         """Inicializa el repositorio.
@@ -28,15 +28,15 @@ class BooksRepository(RepositoriesInterface[Book]):
             url (str): Ruta o URL del archivo JSON donde se almacenan los libros.
         """
         self.__file = FileManager(url, FileType.JSON)
-        self._books_cache = self.__file.read()
+        self.__books = self.__file.read()
 
-    def _refresh_cache(self):
+    def __refresh_books(self):
         """Recarga la caché interna desde el archivo.
 
         La caché se sobrescribe con el contenido actual del archivo para
         asegurar consistencia antes de operaciones de búsqueda o lectura.
         """
-        self._books_cache = self.__file.read()
+        self.__books = self.__file.read()
         
     def __search_id(self, id: str) -> int:
         """Busca el índice de un libro por su id_IBSN.
@@ -47,7 +47,7 @@ class BooksRepository(RepositoriesInterface[Book]):
         Returns:
             int: Índice del libro en la lista de datos, o -1 si no se encuentra.
         """
-        self._refresh_cache()
+        self.__refresh_books()
         index = linear_search(
             self.read_all().to_list(),
             key=lambda book:book.get_id_IBSN(),
@@ -67,7 +67,7 @@ class BooksRepository(RepositoriesInterface[Book]):
         """
         index = self.__search_id(id)
         # return self._books_cache[index] if index != -1 else -1
-        return self._books_cache[index]
+        return self.__books[index]
     
     def create(self, json: dict) -> Book:
         """Crea un nuevo Book a partir de un dict y lo persiste.
@@ -80,7 +80,7 @@ class BooksRepository(RepositoriesInterface[Book]):
         """
         instance = Book.from_dict(json)
         self.__file.append(instance.to_dict())
-        self._refresh_cache()
+        self.__refresh_books()
         return instance
     
     def read(self, id:str) -> Book | None:
@@ -106,12 +106,12 @@ class BooksRepository(RepositoriesInterface[Book]):
             Stack[Book] | None: Pila con todas las instancias Book o None si la
             colección está vacía.
         """
-        self._refresh_cache()
-        if not self._books_cache:
+        self.__refresh_books()
+        if not self.__books:
             print("No books found in the repository.")
             return None
         books = Stack[Book]()
-        for data in self._books_cache:
+        for data in self.__books:
             book = Book.from_dict(data)
             books.push(book)
         return books
@@ -130,12 +130,12 @@ class BooksRepository(RepositoriesInterface[Book]):
         if index == -1:
             print(f"Book with id {id} not found for update.")
             return None
-        instance = Book.from_dict(self._books_cache[index])
+        instance = Book.from_dict(self.__books[index])
         instance.update_from_dict(json)
-        self._books_cache[index] = instance.to_dict()
-        print('update id_IBSN:', id, 'data:', json)
+        self.__books[index] = instance.to_dict()
+        # print('update id_IBSN:', id, 'data:', json)
         
-        self.__file.write(self._books_cache)
+        self.__file.write(self.__books)
         return instance
         
     def delete(self, id: str) -> bool:
@@ -151,15 +151,15 @@ class BooksRepository(RepositoriesInterface[Book]):
         if index == -1:
             print(f"Book with id {id} not found for deletion.")
             return False
-        self._books_cache.pop(index)
-        self.__file.write(self._books_cache)
+        self.__books.pop(index)
+        self.__file.write(self.__books)
         return True
     
     def __str__(self) -> str:
         """Representación legible del repositorio."""
         file_info = getattr(self.__file, "path", getattr(self.__file, "url", str(self.__file)))
-        return f"BooksRepository(file={file_info!r}, cached_books={len(self._books_cache)})"
+        return f"BooksRepository(file={file_info!r}, cached_books={len(self.__books)})"
 
     def __repr__(self) -> str:
         """Representación no ambigua para debugging."""
-        return f"BooksRepository(file={self.__file!r}, books_count={len(self._books_cache)})"
+        return f"BooksRepository(file={self.__file!r}, books_count={len(self.__books)})"
