@@ -2,7 +2,7 @@ from typing import TypeVar, List, Callable, Any
 
 T = TypeVar('T')
 
-def insert_sort(arr: List[T], key: Callable[[T], Any], item: T = None) -> List[T]:
+def insertion_sort(arr: List[T], key: Callable[[T], Any], item: T = None) -> List[T]:
         """Ordena una lista usando insertion sort y devuelve una nueva lista.
 
         Parámetros:
