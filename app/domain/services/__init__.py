@@ -1,2 +1,3 @@
 from .inventory_service import  InventoryService
-__all__ = ["InventoryService"]
+from .user_service import UserService
+__all__ = ["InventoryService", "UserService"]

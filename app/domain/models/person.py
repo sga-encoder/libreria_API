@@ -32,68 +32,130 @@ class Person:
     _password: str
     _role: PersonRole
 
-    def __init__(self, fullName: str, email: str, password: str, role: PersonRole, id: str = None):
-        """Inicializa una nueva instancia de `Person`.
+    def __init__(self, fullName: str, email: str, password: str, role: PersonRole, id: str = None, password_is_hashed: bool = False):
+        """Inicializa una nueva instancia de Person.
 
-        fullName: nombre completo; se valida longitud y que no esté vacío.
-        email: correo electrónico; se valida con una expresión regular simple.
-        password: contraseña en texto plano; se almacenará como hash.
-        role: miembro de la enumeración `PersonRole`.
-        id: identificador opcional; si no se provee se genera con `generate_id()`.
+        Args:
+            fullName (str): Nombre completo de la persona.
+            email (str): Correo electrónico de la persona.
+            password (str): Contraseña en texto plano.
+            role (PersonRole): Rol de la persona.
+            id (str, optional): Identificador único. Defaults to None.
+
+        Raises:
+            ValueError: Si los argumentos no cumplen las validaciones.
         """
         self.__set_id(id)
         self.set_fullName(fullName)
         self.set_email(email)
-        self.set_password(password)
+        if password_is_hashed:
+            self._password = password
+        else:
+            self.set_password(password)
         self.__set_role(role)
 
     @classmethod
     def from_dict(cls, data: dict):
-        """Crea una instancia de `Person` a partir de un diccionario.
+        """Crea una instancia de Person a partir de un diccionario.
 
-        Se espera que `data` contenga las claves: `fullName`, `email`, `password`,
-        `role` (nombre del enum) e `id` (opcional).
+        Args:
+            data (dict): Diccionario con las claves 'fullName', 'email', 'password', 'role' y 'id' (opcional).
+
+        Returns:
+            Person: Nueva instancia de Person.
+
+        Raises:
+            KeyError: Si falta alguna clave requerida o el role no es válido.
+            ValueError: Si los valores no cumplen las validaciones.
         """
         return cls(
             fullName=data.get("fullName"),
             email=data.get("email"),
             password=data.get("password"),
-            role=PersonRole[data.get("role")],
+            role=PersonRole[data.get("role", "USER")],
             id=data.get("id"),
+            password_is_hashed=True,
+        )
+        
+    @classmethod
+    def from_search_api(cls, id: str):
+        """Crea una instancia de Person solo con el id para búsquedas.
+
+        Args:
+            id (str): Identificador único.
+
+        Returns:
+            Person: Nueva instancia con valores por defecto.
+        """
+        return cls(
+            fullName="Gum Guardians",
+            email="gumGuardians.adventure@time.cartoon",
+            password="adventuretime",
+            role=PersonRole.USER,
+            id=id,
         )
 
     @classmethod
     def default(cls):
-        """Devuelve una instancia `Person` con valores por defecto (uso de pruebas/demo)."""
+        """Devuelve una instancia de Person con valores por defecto para pruebas/demo.
+
+        Returns:
+            Person: Nueva instancia con valores por defecto.
+        """
         return cls(
             fullName="Jake the Dog",
             email="jakeTheDog.adventure@time.cartoon",
             password="adventuretime",
             role=PersonRole.USER,
+            id="00000000000000000",
         )
 
     def get_id(self):
-        """Retorna el identificador único de la persona."""
+        """Retorna el identificador único de la persona.
+
+        Returns:
+            str: El identificador único.
+        """
         return self._id
 
     def get_fullName(self):
-        """Retorna el nombre completo."""
+        """Retorna el nombre completo.
+
+        Returns:
+            str: El nombre completo.
+        """
         return self._fullName
 
     def get_email(self):
-        """Retorna el correo electrónico."""
+        """Retorna el correo electrónico.
+
+        Returns:
+            str: El correo electrónico.
+        """
         return self._email
 
     def get_password(self):
-        """Retorna el hash de la contraseña (no el texto plano)."""
+        """Retorna el hash de la contraseña.
+
+        Returns:
+            str: El hash de la contraseña.
+        """
         return self._password
 
     def get_role(self):
-        """Retorna el rol (`PersonRole`)."""
+        """Retorna el rol de la persona.
+
+        Returns:
+            PersonRole: El rol de la persona.
+        """
         return self._role
 
     def __set_id(self, id: str):
-        """Asigna un `id`; si es `None`, lo genera automáticamente."""
+        """Asigna un id; si es None, lo genera automáticamente.
+
+        Args:
+            id (str): El identificador a asignar.
+        """
         if id is None:
             self._id = generate_id()
         else:
@@ -102,9 +164,11 @@ class Person:
     def set_fullName(self, fullName: str):
         """Valida y asigna el nombre completo.
 
-        Reglas:
-        - No puede estar vacío ni solo espacios.
-        - Longitud mínima 3 y máxima 50 caracteres.
+        Args:
+            fullName (str): El nombre completo a asignar.
+
+        Raises:
+            ValueError: Si no cumple las reglas de validación.
         """
         if not fullName or not fullName.strip():
             raise ValueError("El nombre completo no puede estar vacío.")
@@ -116,9 +180,13 @@ class Person:
         self._fullName = fullName
 
     def set_email(self, email: str):
-        """Valida y asigna el correo electrónico usando una regex simple.
+        """Valida y asigna el correo electrónico.
 
-        Se verifica la estructura básica `local@dominio.tld`.
+        Args:
+            email (str): El correo electrónico a asignar.
+
+        Raises:
+            ValueError: Si no es un email válido.
         """
         pattern = re.compile(r"^[^@]+@[^@]+\.[^@]+$")
 
@@ -128,29 +196,44 @@ class Person:
         self._email = email
 
     def set_password(self, password: str):
-        """Hash de la contraseña y asignación.
+        """Hashea la contraseña y la asigna.
 
-        Recibe la contraseña en texto plano y almacena su hash seguro.
+        Args:
+            password (str): La contraseña en texto plano.
         """
         self._password = generate_password_hash(password, method="pbkdf2:sha256", salt_length=16)
 
     def __set_role(self, role: PersonRole):
-        """Asigna el rol de la persona (método interno)."""
-        self._role = role
+        """Asigna el rol de la persona.
+
+        Args:
+            role (PersonRole): El rol a asignar.
+        """
+        if not isinstance(role, PersonRole):
+            self._role = PersonRole.USER
+        else:
+            self._role = role
 
     def verify_password(self, password: str) -> bool:
-        """Verifica si `password` coincide con el hash almacenado.
+        """Verifica si la contraseña coincide con el hash almacenado.
 
-        Retorna `True` si coinciden, `False` en caso contrario.
+        Args:
+            password (str): La contraseña en texto plano a verificar.
+
+        Returns:
+            bool: True si coincide, False en caso contrario.
         """
         return check_password_hash(self._password, password)
 
     def change_password(self, current_password: str, new_password: str) -> bool:
-        """Cambia la contraseña si `current_password` es correcta.
+        """Cambia la contraseña si la contraseña actual es correcta.
 
-        - Verifica la contraseña actual con `verify_password`.
-        - Si es correcta, reemplaza el hash por el hash de `new_password`.
-        - Retorna `True` si el cambio tuvo éxito, `False` si la verificación falló.
+        Args:
+            current_password (str): La contraseña actual en texto plano.
+            new_password (str): La nueva contraseña en texto plano.
+
+        Returns:
+            bool: True si el cambio fue exitoso, False si la verificación falló.
         """
         if not self.verify_password(current_password):
             return False
@@ -158,9 +241,10 @@ class Person:
         return True
 
     def to_dict(self):
-        """Serializa la instancia a un diccionario apto para persistencia/JSON.
+        """Serializa la instancia a un diccionario.
 
-        Nota: `password` contendrá el hash.
+        Returns:
+            dict: Diccionario con los atributos de la persona.
         """
         return {
             "id": self._id,
@@ -170,30 +254,65 @@ class Person:
             "role": self._role.name,
         }
         
+    def update_from_dict(self, data: dict):
+        """Actualiza los atributos de la instancia a partir de un diccionario.
+
+        Args:
+            data (dict): Diccionario con los campos a actualizar. Puede incluir 'fullName', 'email', 'new_password', 'role'.
+                         Para actualizar la contraseña, debe incluir 'password' (actual) y 'new_password'.
+
+        Raises:
+            ValueError: Si los valores no son válidos o falta la contraseña actual para cambiarla.
+        """
+        if "fullName" in data:
+            self.set_fullName(data["fullName"])
+        if "email" in data:
+            self.set_email(data["email"])
+        if "new_password" in data:
+            if "password" in data:
+                self.change_password(data["password"], data["new_password"])
+            else:
+                raise ValueError("necesitas la contraseña anterior para actualizar la contraseña")
+        if "role" in data:
+            self.__set_role(PersonRole[data["role"]])
+
+    def __str__(self):
+        """Representación en cadena legible para humanos.
+
+        Returns:
+            str: Cadena con información de la persona.
+        """
+        return f"Person: {self._fullName} ({self._email}) - Role: {self._role.name}"
+
+    def __repr__(self):
+        """Representación orientada a debugging.
+
+        Returns:
+            str: Cadena para debugging.
+        """
+        return f"Person(id={self._id}, fullName={self._fullName}, role={self._role.name})"
+    
     def __eq__(self, other):
-        """Comparación de igualdad entre instancias de Person.
+        """Compara la igualdad con otra instancia de Person.
 
         Regla:
         - Si ambos objetos tienen `id`, se comparan los `id`.
         - Si no, se compara el `email` (se asume único por usuario).
         - Devuelve False si `other` no es una Person.
+
+        Args:
+            other: Objeto a comparar.
+
+        Returns:
+            bool: True si son iguales, False en caso contrario.
         """
         if self is other:
             return True
         if not isinstance(other, Person):
             return False
         # Si ambos tienen id, usarlo como identidad
-        if getattr(self, "_id", None) and getattr(other, "_id", None):
-            return self._id == other._id
+    
         # Fallback: comparar por email
-        return self._email == other._email
-
-    def __str__(self):
-        """Representación en cadena legible para humanos."""
-        return f"Person: {self._fullName} ({self._email}) - Role: {self._role.name}"
-
-    def __repr__(self):
-        """Representación orientada a debugging."""
-        return f"Person(id={self._id}, fullName={self._fullName}, role={self._role.name})"
+        return self._id == other._id
         
 

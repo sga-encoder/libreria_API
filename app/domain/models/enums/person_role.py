@@ -1,6 +1,6 @@
 from enum import Enum, auto
 
 class PersonRole(Enum):
-    ADMIN = auto()
-    USER = auto()
+    ADMIN = "ADMIN"
+    USER = "USER"
     
