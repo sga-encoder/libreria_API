@@ -2,6 +2,7 @@ from typing import Optional
 from app.domain.models import Loan, Book, User
 from app.domain.repositories import RepositoriesInterface
 from app.domain.structures import Queue
+from app.domain.algorithms import linear_search
 from app.services.library import Library
 from app.utils import FileManager, FileType
 
@@ -122,9 +123,22 @@ class LoansRepository(RepositoriesInterface[Loan]):
         return loan
     
     def read(self, id: str):
-        for loan in self.__loans:
-            if loan.get_id() == id:
-                return loan
+        if not self.__loans:
+            return None
+        
+        # Crear un objeto dummy con el id buscado para usar con linear_search
+        class LoanDummy:
+            def __init__(self, id):
+                self._id = id
+            def get_id(self):
+                return self._id
+        
+        dummy = LoanDummy(id)
+        index = linear_search(self.__loans, lambda loan: loan.get_id(), dummy)
+        
+        if index != -1:
+            return self.__loans[index]
+        return None
     
     def read_all(self):
         """Leer todos los préstamos activos desde persistencia.
@@ -166,143 +180,163 @@ class LoansRepository(RepositoriesInterface[Loan]):
         return self.__loans
     
     def update(self, id: str, json: dict, new_book_id: Optional[str] = None) -> Loan:
-        for loan in list(self.__loans):
-            if loan.get_id() == id:
-                user = loan.get_user()
-                book = loan.get_book()
+        # Buscar el préstamo usando linear_search
+        class LoanDummy:
+            def __init__(self, id):
+                self._id = id
+            def get_id(self):
+                return self._id
+        
+        dummy = LoanDummy(id)
+        index = linear_search(self.__loans, lambda loan: loan.get_id(), dummy)
+        
+        if index != -1:
+            loan = self.__loans[index]
+            user = loan.get_user()
+            book = loan.get_book()
 
-                # Liberar el libro en inventario e instancia
-                try:
-                    # marcar en inventario
-                    for inv_book in Library.get_inventary():
-                        if inv_book.get_id_IBSN() == book.get_id_IBSN():
-                            inv_book.set_is_borrowed(False)
-                            break
-                except Exception:
-                    pass
-                try:
-                    book.set_is_borrowed(False)
-                except Exception:
-                    pass
-
-                # Buscar si hay reservas para este ISBN y asignar al siguiente usuario
-                try:
-                    rq = Library.get_reservationsQueue().to_list()
-                    for idx, reservation in enumerate(rq):
-                        reserved_user, reserved_book = reservation
-                        if reserved_book.get_id_IBSN() == book.get_id_IBSN():
-                            print("There is a reservation for this book. Assigning to the next user in the queue.")
-                            created = LoansRepository.create(self, json, reserved_user, reserved_book)
-                            if created is not None:
-                                # eliminar la reserva encontrada
-                                rq.pop(idx)
-                            break
-                    # reconstruir la cola sin la reserva consumida
-                    new_q = Queue()
-                    for item in rq:
-                        new_q.push(item)
-                    Library.set_reservationsQueue(new_q)
-                except Exception:
-                    pass
-
-                # Eliminar el loan antiguo de las listas (global y local)
-                try:
-                    lr = Library.get_loanRecords()
-                    if loan in lr:
-                        lr.remove(loan)
-                        Library.set_loanRecords(lr)
-                except Exception:
-                    pass
-                try:
-                    if loan in self.__loans:
-                        self.__loans.remove(loan)
-                except Exception:
-                    pass
-
-                # Usar new_book_id si fue pasado
-                if new_book_id is None:
-                    print("No new_book_id provided for update; aborting.")
-                    return None
-
-                book_found = None
-                for book1 in Library.get_inventary():
-                    if book1.get_id_IBSN() == new_book_id:
-                        book_found = book1
+            # Liberar el libro en inventario e instancia
+            try:
+                # marcar en inventario
+                for inv_book in Library.get_inventary():
+                    if inv_book.get_id_IBSN() == book.get_id_IBSN():
+                        inv_book.set_is_borrowed(False)
                         break
+            except Exception:
+                pass
+            try:
+                book.set_is_borrowed(False)
+            except Exception:
+                pass
 
-                if book_found is None:
-                    print("Book not found")
-                    return None
+            # Buscar si hay reservas para este ISBN y asignar al siguiente usuario
+            try:
+                rq = Library.get_reservationsQueue().to_list()
+                for idx, reservation in enumerate(rq):
+                    reserved_user, reserved_book = reservation
+                    if reserved_book.get_id_IBSN() == book.get_id_IBSN():
+                        print("There is a reservation for this book. Assigning to the next user in the queue.")
+                        created = LoansRepository.create(self, json, reserved_user, reserved_book)
+                        if created is not None:
+                            # eliminar la reserva encontrada
+                            rq.pop(idx)
+                        break
+                # reconstruir la cola sin la reserva consumida
+                new_q = Queue()
+                for item in rq:
+                    new_q.push(item)
+                Library.set_reservationsQueue(new_q)
+            except Exception:
+                pass
 
-                if book_found.get_is_borrowed():
-                    print("Loan has been attempted for a borrowed book. Adding user to reservation queue.")
-                    reservationQueue = Library.get_reservationsQueue()
-                    try:
-                        reservationQueue.push((user, book_found))
-                    except Exception:
-                        try:
-                            reservationQueue.append((user, book_found))
-                        except Exception:
-                            pass
-                    Library.set_reservationsQueue(reservationQueue)
-                    return None
+            # Eliminar el loan antiguo de las listas (global y local)
+            try:
+                lr = Library.get_loanRecords()
+                if loan in lr:
+                    lr.remove(loan)
+                    Library.set_loanRecords(lr)
+            except Exception:
+                pass
+            try:
+                if loan in self.__loans:
+                    self.__loans.remove(loan)
+            except Exception:
+                pass
 
-                # Crear el nuevo préstamo y devolverlo (create ya sincroniza Library y self.__loans)
-                created = LoansRepository.create(self, json, user, book_found)
-                if created is not None:
-                    return created
+            # Usar new_book_id si fue pasado
+            if new_book_id is None:
+                print("No new_book_id provided for update; aborting.")
                 return None
+
+            book_found = None
+            for book1 in Library.get_inventary():
+                if book1.get_id_IBSN() == new_book_id:
+                    book_found = book1
+                    break
+
+            if book_found is None:
+                print("Book not found")
+                return None
+
+            if book_found.get_is_borrowed():
+                print("Loan has been attempted for a borrowed book. Adding user to reservation queue.")
+                reservationQueue = Library.get_reservationsQueue()
+                try:
+                    reservationQueue.push((user, book_found))
+                except Exception:
+                    try:
+                        reservationQueue.append((user, book_found))
+                    except Exception:
+                        pass
+                Library.set_reservationsQueue(reservationQueue)
+                return None
+
+            # Crear el nuevo préstamo y devolverlo (create ya sincroniza Library y self.__loans)
+            created = LoansRepository.create(self, json, user, book_found)
+            if created is not None:
+                return created
+            return None
         
         print("Loan not found")
     
     def delete(self, id: str) -> bool:
-        # Buscar el loan en el registro global
+        # Buscar el loan en el registro global usando linear_search
         lr = Library.get_loanRecords()
-        for loan in list(lr):
-            if loan.get_id() == id:
-                book = loan.get_book()
-                # Liberar libro en inventario e instancia
-                try:
-                    for inv_book in Library.get_inventary():
-                        if inv_book.get_id_IBSN() == book.get_id_IBSN():
-                            inv_book.set_is_borrowed(False)
-                            break
-                except Exception:
-                    pass
-                try:
-                    book.set_is_borrowed(False)
-                except Exception:
-                    pass
+        
+        class LoanDummy:
+            def __init__(self, id):
+                self._id = id
+            def get_id(self):
+                return self._id
+        
+        dummy = LoanDummy(id)
+        index = linear_search(lr, lambda loan: loan.get_id(), dummy)
+        
+        if index != -1:
+            loan = lr[index]
+            book = loan.get_book()
+            # Liberar libro en inventario e instancia
+            try:
+                for inv_book in Library.get_inventary():
+                    if inv_book.get_id_IBSN() == book.get_id_IBSN():
+                        inv_book.set_is_borrowed(False)
+                        break
+            except Exception:
+                pass
+            try:
+                book.set_is_borrowed(False)
+            except Exception:
+                pass
 
-                # Asignar a la siguiente reserva si existe
-                try:
-                    rq = Library.get_reservationsQueue().to_list()
-                    for idx, reservation in enumerate(rq):
-                        reserved_user, reserved_book = reservation
-                        if reserved_book.get_id_IBSN() == book.get_id_IBSN():
-                            print("There is a reservation for this book. Assigning to the next user in the queue.")
-                            created = LoansRepository.create(self, {}, reserved_user, reserved_book)
-                            if created is not None:
-                                rq.pop(idx)
-                            break
-                    new_q = Queue()
-                    for item in rq:
-                        new_q.push(item)
-                    Library.set_reservationsQueue(new_q)
-                except Exception:
-                    pass
+            # Asignar a la siguiente reserva si existe
+            try:
+                rq = Library.get_reservationsQueue().to_list()
+                for idx, reservation in enumerate(rq):
+                    reserved_user, reserved_book = reservation
+                    if reserved_book.get_id_IBSN() == book.get_id_IBSN():
+                        print("There is a reservation for this book. Assigning to the next user in the queue.")
+                        created = LoansRepository.create(self, {}, reserved_user, reserved_book)
+                        if created is not None:
+                            rq.pop(idx)
+                        break
+                new_q = Queue()
+                for item in rq:
+                    new_q.push(item)
+                Library.set_reservationsQueue(new_q)
+            except Exception:
+                pass
 
-                # Eliminar loan de registros global y lista local
-                try:
-                    if loan in lr:
-                        lr.remove(loan)
-                        Library.set_loanRecords(lr)
-                except Exception:
-                    pass
-                try:
-                    if loan in self.__loans:
-                        self.__loans.remove(loan)
-                except Exception:
-                    pass
-                return True
+            # Eliminar loan de registros global y lista local
+            try:
+                if loan in lr:
+                    lr.remove(loan)
+                    Library.set_loanRecords(lr)
+            except Exception:
+                pass
+            try:
+                if loan in self.__loans:
+                    self.__loans.remove(loan)
+            except Exception:
+                pass
+            return True
         return False
