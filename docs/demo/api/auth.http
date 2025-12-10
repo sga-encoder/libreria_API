@@ -1,0 +1,14 @@
+@host = http://localhost:8000/api/v1
+
+### =============================================================================
+### AUTENTICACIÓN
+### =============================================================================
+
+### Login (JSON) - alternativa (usa /auth/login)
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "crunchy.adventure@time.cartoon",
+  "password": "adventuretime"
+}

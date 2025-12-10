@@ -1,10 +1,10 @@
 from fastapi import APIRouter
 from . import LoanCreate, LoanUpdate
 from app.domain.repositories import LoansRepository
-from app.services import Library
+from app.domain.repositories.library import Library
 
 loan_router = APIRouter(
-    prefix="/loan",
+    prefix="/api/v1/loan",
     tags=["loan"]
 )
 loan_crud = LoansRepository(Library.get_loanRecords(), Library.get_reservationsQueue(), Library.get_user())

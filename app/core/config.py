@@ -13,6 +13,7 @@ class Settings:
     DATA_PATH = "./data"
     DATA_PATH_INVENTARY = f"{DATA_PATH}/json/books.json"
     DATA_PATH_USERS = f"{DATA_PATH}/json/users.json"
+    DATA_PATH_ADMINS = f"{DATA_PATH}/json/admins.json"
     DATA_PATH_LOANS_RECORDS = f"{DATA_PATH}/json/loans_records.json"
     GOOGLE_BOOKS_API_KEY = GOOGLE_BOOKS_API_KEY
     ALGORITHM = "HS256"

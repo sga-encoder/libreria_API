@@ -33,7 +33,7 @@ class UserAPIService:
         Raises:
             HTTPException: Si ocurre un error durante la creación.
         """
-        try:    
+        try:
             data = json.model_dump()
             result = self.__user_service.add(data)
             return result
@@ -72,7 +72,7 @@ class UserAPIService:
             HTTPException: Si no hay usuarios o hay error.
         """
         try:
-            result = self.__user_service.get_users()
+            result = self.__user_service.get_users_all()
             if result is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No hay usuarios disponibles")
             return result

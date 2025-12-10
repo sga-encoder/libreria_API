@@ -6,8 +6,9 @@ para lectura/escritura de datos en formato JSON y mantiene una caché
 local de los registros leídos.
 """
 from typing import Optional
-from app.domain.models import Loan
-from app.domain.repositories import RepositoriesInterface
+from app.domain.models import Loan, Book, User
+from .interface import RepositoriesInterface
+from app.domain.structures import Queue
 from app.domain.algorithms import linear_search
 from app.utils import FileManager, FileType
 

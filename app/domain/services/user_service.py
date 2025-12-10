@@ -1,5 +1,6 @@
 from app.domain.repositories import UsersRepository 
 from app.domain.models import User
+from app.domain.models.enums import PersonRole
 from app.domain.algorithms import insertion_sort
 
 class UserService:
@@ -14,22 +15,14 @@ class UserService:
     """
     __users: list[User]
     
-    def __init__(self, url: str) -> None:
+    def __init__(self, url: str, role: PersonRole = PersonRole.USER) -> None:
         """Inicializa el servicio de usuarios.
         
         Args:
             url (str): Ruta o URL del archivo donde se almacenan los usuarios.
         """
-        self.__user_repository = UsersRepository(url)
+        self.__user_repository = UsersRepository(url, role=role)
         self.__load()
-
-    def get_users(self) -> list[User] | None:
-        """Obtiene la lista de usuarios desde la caché interna.
-        
-        Returns:
-            list[User] | None: Lista de usuarios ordenados, o None si no hay usuarios.
-        """
-        return self.__users        
         
     def __load(self) -> None:
         """Carga y ordena los usuarios desde el repositorio.
@@ -62,6 +55,7 @@ class UserService:
         """
         try:
             user = self.__user_repository.create(json)
+            
             self.__users.append(user)
             self.__users = insertion_sort(
                 self.__users,

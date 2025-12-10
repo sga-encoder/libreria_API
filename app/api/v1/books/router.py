@@ -9,17 +9,17 @@ from fastapi import APIRouter, Depends
 from .services import BookAPIService
 from .schemas import BookCreate, BookUpdate
 from app.core import settings
-from app.dependencies import get_current_user
+from app.dependencies import get_current_user, get_current_admin
 
 book_router = APIRouter(
-    prefix="/book",
+    prefix="/api/v1/book",
     tags=["book"]
 )
 
 
 book_service = BookAPIService(settings.DATA_PATH_INVENTARY)
 
-@book_router.post("/", dependencies=[Depends(get_current_user)])
+@book_router.post("/", dependencies=[Depends(get_current_admin)])
 def create(book: BookCreate):
     """
     Crear un nuevo libro usando los datos proporcionados.
@@ -33,7 +33,7 @@ def create(book: BookCreate):
     data = book_service.create_book(book)
     return {"message": f'sea creado el libro satisfactoriamente',  "data": data.to_dict()}
 
-@book_router.post("/ISBN/{id_IBSN}")
+@book_router.post("/ISBN/{id_IBSN}", dependencies=[Depends(get_current_admin)])
 def create_by_ISBN(id_IBSN: str):
     """
     Crear un libro consultando información a partir del ISBN.
@@ -72,7 +72,7 @@ def read_all():
     data = book_service.read_all_books()
     return {"message": f"se a leido satisfactoriamente todos los libros", "data": [book.to_dict() for book in data]}
 
-@book_router.patch("/{id_IBSN}")
+@book_router.patch("/{id_IBSN}", dependencies=[Depends(get_current_admin)])
 def update(id_IBSN: str, book: BookUpdate):
     """
     Actualizar campos de un libro existente identificado por ISBN.
@@ -87,7 +87,7 @@ def update(id_IBSN: str, book: BookUpdate):
     data  = book_service.update_book(id_IBSN, book)
     return {"message": f"sea actualizado el libro con el {id_IBSN} satisfactoriamente", "data": data.to_dict()}
 
-@book_router.delete("/{id_IBSN}")
+@book_router.delete("/{id_IBSN}",  dependencies=[Depends(get_current_admin)])
 def delete(id_IBSN:str):
     """
     Eliminar un libro identificado por su ISBN.
