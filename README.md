@@ -55,6 +55,16 @@
  python -m pytest -q
  ```
 
+ **Estadísticas de Contribuidores**
+
+ Para ver cuántas líneas de código ha agregado y eliminado cada contribuidor:
+
+ ```powershell
+ python contributor_stats.py
+ ```
+
+ Ver la [documentación completa](docs/ContributorStats.md) para más detalles.
+
  **Instrucciones básicas de Git**
 
  He inicializado el repositorio localmente y añadido un `.gitignore` básico (ver archivo en la raíz). Para subir (push) los cambios a un repositorio remoto necesitas configurar un `remote` llamado `origin` con la URL de tu repo en GitHub/GitLab/Bitbucket.
@@ -141,5 +151,6 @@
 | Schemas | [docs/Schemas.md](docs/Schemas.md) |
 | Services | [docs/Services.md](docs/Services.md) |
 | Utils | [docs/Utils.md](docs/Utils.md) |
+| Contributor Stats | [docs/ContributorStats.md](docs/ContributorStats.md) |
 
 ---
