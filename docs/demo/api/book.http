@@ -1,0 +1,45 @@
+@host = http://localhost:8000/api/v1/book
+@token = <YOUR_ACCESS_TOKEN_HERE>
+
+### =============================================================================
+### LIBROS (Books)
+### =============================================================================
+
+### Crear libro (requiere autenticación)
+POST {{host}}/
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id_IBSN": "978-1234567890",
+  "title": "El Gran Libro",
+  "author": "Autor Ejemplo",
+  "gender": "FICCION",
+  "weight": 1.2,
+  "price": 19.99,
+  "description": "Un libro muy interesante.",
+  "frond_page_url": "http://example.com/portada.jpg",
+  "is_borrowed": false
+}
+
+### Crear libro por ISBN (desde API externa)
+POST {{host}}/ISBN/9780553897845
+
+### Leer libro por ISBN
+GET {{host}}/9780553897845
+
+### Leer todos los libros
+GET {{host}}/
+
+### Actualizar libro (requiere autenticación)
+PATCH {{host}}/9780553897845
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "El Gran Libro - Edición Revisada"
+}
+
+### Eliminar libro (requiere autenticación)
+DELETE {{host}}/9780553897845
+Authorization: Bearer {{token}}

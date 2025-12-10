@@ -1,0 +1,74 @@
+@host = http://localhost:8000/api/v1
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0aGVQcmltby5hZHZlbnR1cmVAdGltZS5jYXJ0b29uIiwicm9sZSI6IlVTRVIiLCJleHAiOjE3NjUzMjI3MDd9.d6FBfo2XDgSyEPYvCV5yFs5hq7nUT9bJKj2qp7W59ZE
+
+### =============================================================================
+### AUTENTICACIÓN DE ADMIN
+### =============================================================================
+
+### Login como Admin (JSON)
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "thePrimo.adventure@time.cartoon",
+  "password": "adventuretime"
+}
+
+### Verificar sesión de admin
+GET {{host}}/auth/me
+Authorization: Bearer {{adminToken}}
+
+### =============================================================================
+### CRUD DE ADMINISTRADORES (Solo Admins)
+### =============================================================================
+
+### Crear nuevo administrador
+POST {{host}}/admin/
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "fullName": "Billy",
+  "email": "billy.adventure@time.cartoon",
+  "password": "adventuretime"
+}
+
+### Leer un administrador específico
+GET {{host}}/admin/00000000000000001
+Authorization: Bearer {{adminToken}}
+
+### Leer todos los administradores
+GET {{host}}/admin/
+Authorization: Bearer {{adminToken}}
+
+### Actualizar un administrador
+PATCH {{host}}/admin/00000000000000001
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "fullName": "The Primo Updated"
+}
+
+### Eliminar un administrador
+DELETE {{host}}/admin/17652233141580001
+Authorization: Bearer {{adminToken}}
+
+### =============================================================================
+### NOTAS IMPORTANTES
+### =============================================================================
+
+# CREDENCIALES INICIALES:
+# Email: admin@library.com
+# Password: admin123
+
+# SEGURIDAD:
+# - Todos los endpoints de admin requieren token de administrador
+# - Solo admins pueden crear, leer, actualizar y eliminar otros admins
+# - Cambia la contraseña del super admin después del primer login
+
+# FLUJO RECOMENDADO:
+# 1. Login con super admin (admin@library.com)
+# 2. Crear otros admins según necesites
+# 3. Cambiar contraseña del super admin
+# 4. Usar admins específicos para diferentes tareas

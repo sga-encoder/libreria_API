@@ -1,0 +1,88 @@
+@host = http://localhost:8000/api/v1/user
+@hostAuth = http://localhost:8000/api/v1/auth
+@UserToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdGFyY2h5LmFkdmVudHVyZUB0aW1lLmNhcnRvb24iLCJyb2xlIjoiVVNFUiIsImV4cCI6MTc2NTMzOTU0NH0.FE-CfZGPVrH5j2nLtiGiGC89fmJ6hYrDS8DZrJBHESU
+
+### Login  Starchy(JSON)
+POST {{hostAuth}}/login
+Content-Type: application/json
+
+{
+  "email": "starchy.adventure@time.cartoon",
+  "password": "adventuretime"
+}
+
+### Login Dr Donut (JSON) 
+POST {{hostAuth}}/login
+Content-Type: application/json
+
+{
+  "email": "DrDonut.adventure@time.cartoon",
+  "password": "adventuretime"
+}
+
+### Login Crunchy (JSON) 
+POST {{hostAuth}}/login
+Content-Type: application/json
+
+{
+  "email": "crunchy.adventure@time.cartoon",
+  "password": "adventuretime"
+}
+
+### Verificar sesión de admin
+GET {{hostAuth}}/me
+Authorization: Bearer {{UserToken}}
+
+### =============================================================================
+### USUARIOS (Users)
+### =============================================================================
+
+### Crear Starchy
+POST {{host}}/
+Content-Type: application/json
+
+{
+  "fullName": "Starchy",
+  "email": "starchy.adventure@time.cartoon",
+  "password": "adventuretime"
+}
+
+### Crear Dr Donut
+POST {{host}}/
+Content-Type: application/json
+
+{
+  "fullName": "Dr. Donut",
+  "email": "DrDonut.adventure@time.cartoon",
+  "password": "adventuretime"
+}
+
+### Crear Crunchy
+POST {{host}}/
+Content-Type: application/json
+
+{
+  "fullName": "Crunchy",
+  "email": "crunchy.adventure@time.cartoon",
+  "password": "adventuretime"
+}
+
+### Leer usuario por ID (usar ID de usuario creado)
+GET {{host}}/17653362689770001
+Authorization: Bearer {{UserToken}}
+
+
+### Leer todos los usuarios
+GET {{host}}/
+
+### Actualizar usuario
+PATCH {{host}}/17653216414580002
+Authorization: Bearer {{UserToken}}
+Content-Type: application/json
+
+{
+  "email": "starchy.adventureNuevo@time.cartoon"
+}
+
+### Eliminar usuario
+DELETE {{host}}/17647805133370001
