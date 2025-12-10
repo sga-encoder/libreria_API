@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.api.v1 import book_router, loan_router, user_router, auth_router
+from app.api.v1 import book_router, loan_router, user_router, auth_router, admin_router
 
 
 app = FastAPI()
@@ -12,6 +12,8 @@ app.include_router(user_router)
 app.include_router(book_router)
 app.include_router(loan_router)
 app.include_router(auth_router)
+app.include_router(admin_router)
+# Compatibilidad: exponer endpoints de auth también bajo /auth (ej. /auth/login)
 
 
 

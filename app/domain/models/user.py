@@ -4,31 +4,28 @@ from .enums import PersonRole
 class User(Person):
     __loans: list
 
-    def __init__(self, fullName: str, email: str, password: str, loans: list, id: str = "00000000000000000", role: PersonRole = PersonRole.USER):
+    def __init__(self, fullName: str, email: str, password: str, loans: list, id: str = "00000000000000000", role: PersonRole = PersonRole.USER, password_is_hashed: bool = False):
         # Aceptamos `role` por compatibilidad con llamadas heredadas
         # (p. ej. si se invoca `Person.from_dict` con `cls=User`).
-        super().__init__(fullName, email, password, role, id)
+        super().__init__(fullName, email, password, role, id, password_is_hashed=password_is_hashed)
         self.__set_loans(loans)
         
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_dict(cls, data: dict, password_is_hashed: bool = True):
         # Manejar role si viene en el diccionario (puede ser nombre o PersonRole)
-        role_value = data.get("role", "USER")
-        if isinstance(role_value, PersonRole):
-            role = role_value
-        else:
-            try:
-                role = PersonRole[role_value]
-            except Exception:
-                role = PersonRole.USER
+        
+        # Crear instancia usando el constructor de Person directamente
+        # para aprovechar el parámetro password_is_hashed
         return cls(
             fullName=data.get("fullName"),
             email=data.get("email"),
             password=data.get("password"),
             loans=data.get("loans", []),
             id=data.get("id"),
-            role=role,
+            role=PersonRole.USER,
+            password_is_hashed=password_is_hashed  # ← La contraseña del JSON ya está hasheada
         )
+
         
     @classmethod
     def from_search_api(cls, id: str):

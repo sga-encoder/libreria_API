@@ -55,7 +55,7 @@ class Person:
         self.__set_role(role)
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_dict(cls, data: dict, role: PersonRole = PersonRole.USER ,password_is_hashed: bool = True):
         """Crea una instancia de Person a partir de un diccionario.
 
         Args:
@@ -72,9 +72,9 @@ class Person:
             fullName=data.get("fullName"),
             email=data.get("email"),
             password=data.get("password"),
-            role=PersonRole[data.get("role", "USER")],
+            role=role,
             id=data.get("id"),
-            password_is_hashed=True,
+            password_is_hashed=password_is_hashed,
         )
         
     @classmethod

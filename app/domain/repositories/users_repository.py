@@ -1,5 +1,6 @@
 from app.utils import FileManager, FileType
-from app.domain.models import User
+from app.domain.models import User, Person
+from app.domain.models.enums import PersonRole
 from .interface import RepositoriesInterface
 from app.domain.algorithms import binary_search
 
@@ -15,7 +16,7 @@ class UsersRepository(RepositoriesInterface[User]):
         __users (list[User]): Caché interna de usuarios cargados.
     """
     
-    def __init__(self, url: str) -> None:
+    def __init__(self, url: str, role: PersonRole = PersonRole.USER ) -> None:
         """Inicializa el repositorio.
 
         Args:
@@ -23,6 +24,7 @@ class UsersRepository(RepositoriesInterface[User]):
         """
         self.__file = FileManager(url, FileType.JSON)
         self.__users = self.__file.read()
+        self.__role = role
         
     def __refresh_users(self):
         """Recarga la caché interna desde el archivo.
@@ -59,7 +61,13 @@ class UsersRepository(RepositoriesInterface[User]):
         Returns:
             User: Instancia del usuario creado.
         """
-        instance = User.from_dict(json)
+        instance = None
+        
+        if self.__role == PersonRole.ADMIN:
+            instance = Person.from_dict(json, PersonRole.ADMIN, password_is_hashed=False)
+        elif self.__role == PersonRole.USER:
+            instance = User.from_dict(json, password_is_hashed=False)
+            
         self.__file.append(instance.to_dict())
         self.__refresh_users()
         return instance
@@ -79,7 +87,12 @@ class UsersRepository(RepositoriesInterface[User]):
         if user == -1:
             print("Usuario no encontrado.")
             return None
-        instance = User.from_dict(self.__users[user])
+        instance = None
+        if self.__role == PersonRole.ADMIN:
+            instance = Person.from_dict(self.__users[user], role=PersonRole.ADMIN)
+        elif self.__role == PersonRole.USER:
+            instance = User.from_dict(self.__users[user])
+        
         return instance
 
     def read_all(self) -> list[User] | None:
@@ -92,9 +105,14 @@ class UsersRepository(RepositoriesInterface[User]):
         if not self.__users:
             print("No hay usuarios registrados.")
             return None
+        
         users = []
         for data in self.__users:
-            user = User.from_dict(data)
+            user = None
+            if self.__role == PersonRole.ADMIN:
+                user = Person.from_dict(data, role=PersonRole.ADMIN)
+            elif self.__role == PersonRole.USER:
+                user = User.from_dict(data)
             users.append(user)
             
         return users
@@ -113,8 +131,14 @@ class UsersRepository(RepositoriesInterface[User]):
         if index == -1:
             print("Usuario no encontrado.")
             return None
-        instance = User.from_dict(self.__users[index])
+        
+        instance = None
+        if self.__role == PersonRole.ADMIN:
+            instance = Person.from_dict(self.__users[index], role=PersonRole.ADMIN)
+        elif self.__role == PersonRole.USER:
+            instance = User.from_dict(self.__users[index])
         instance.update_from_dict(json)
+        
         self.__users[index] = instance.to_dict()
         
         self.__file.write(self.__users)
