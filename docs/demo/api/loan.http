@@ -1,0 +1,35 @@
+@host = http://localhost:8000/api/v1/loan
+@token = <YOUR_ACCESS_TOKEN_HERE>
+
+### =============================================================================
+### PRÉSTAMOS (Loans)
+### =============================================================================
+
+### Crear préstamo
+POST {{host}}/
+Content-Type: application/json
+# Authorization: Bearer {{token}}
+
+{
+  "user_id": "user123",
+  "book_isbn": "978-1234567890"
+}
+
+### Leer préstamo por ID
+GET {{host}}/loan-id-123
+
+### Leer todos los préstamos
+GET {{host}}/
+
+### Actualizar préstamo (cambiar libro)
+PATCH {{host}}/loan-id-123
+Content-Type: application/json
+# Authorization: Bearer {{token}}
+
+{
+  "book_isbn": "978-0987654321"
+}
+
+### Eliminar préstamo (devolver libro)
+DELETE {{host}}/loan-id-123
+# Authorization: Bearer {{token}}

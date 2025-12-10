@@ -32,7 +32,8 @@ class Loan:
         return cls(
              user=User.from_dict(data["user"]),
              book=Book.from_dict(data["book"]),
-             loanDate=datetime.fromisoformat(data["loanDate"])
+             loanDate=datetime.fromisoformat(data["loanDate"]),
+             id=data.get("id")
         )
         
     def get_id(self):

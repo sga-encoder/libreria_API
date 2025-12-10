@@ -11,7 +11,7 @@ from app.domain.repositories import LoansRepository
 from app.domain.structures import Queue, Stack
 from app.domain.models import Loan, Book, User
 from app.domain.algorithms import linear_search, insertion_sort
-from app.services.library import Library
+from app.domain.repositories.library import Library
 
 
 class LoanService:

@@ -189,3 +189,86 @@ class UsersRepository(RepositoriesInterface[User]):
                     raise ValueError("UsersRepository.save expects a list of User or a list of dicts")
 
         self.__file.write(serial)
+
+    def add_loan(self, id_user: str, loan) -> bool:
+        """Agrega un préstamo a un usuario.
+        
+        Actualiza tanto la instancia del usuario como el archivo.
+        
+        Args:
+            id_user (str): ID del usuario al que se le agregará el préstamo.
+            loan: Objeto del préstamo a agregar.
+            
+        Returns:
+            bool: True si el préstamo fue agregado exitosamente, False en caso contrario.
+        """
+        index = self.__search_id(id_user)
+        if index == -1:
+            print("Usuario no encontrado.")
+            return False
+        
+        # Obtener la instancia del usuario
+        user = self.read(id_user)
+        if user is None:
+            return False
+        
+        # Agregar el préstamo a la instancia
+        user.add_loan(loan)
+        
+        # Actualizar en la caché interna
+        self.__users[index] = user.to_dict()
+        
+        # Guardar en el archivo
+        self.__file.write(self.__users)
+        
+        return True
+
+    def delete_loan(self, id_user: str, id_loan: str) -> bool:
+        """Elimina un préstamo de un usuario.
+        
+        Actualiza tanto la instancia del usuario como el archivo.
+        
+        Args:
+            id_user (str): ID del usuario del cual se eliminará el préstamo.
+            id_loan (str): ID del préstamo a eliminar.
+            
+        Returns:
+            bool: True si el préstamo fue eliminado exitosamente, False en caso contrario.
+        """
+        index = self.__search_id(id_user)
+        if index == -1:
+            print("Usuario no encontrado.")
+            return False
+        
+        # Obtener la instancia del usuario
+        user = self.read(id_user)
+        if user is None:
+            return False
+        
+        # Obtener los préstamos del usuario
+        loans = user.get_loans()
+        
+        # Buscar y eliminar el préstamo por su ID
+        loan_to_remove = None
+        for loan in loans:
+            if hasattr(loan, 'get_id') and loan.get_id() == id_loan:
+                loan_to_remove = loan
+                break
+            elif isinstance(loan, dict) and loan.get('id') == id_loan:
+                loan_to_remove = loan
+                break
+        
+        if loan_to_remove is None:
+            print(f"Préstamo con ID {id_loan} no encontrado para el usuario.")
+            return False
+        
+        # Eliminar el préstamo de la instancia
+        user.remove_loan(loan_to_remove)
+        
+        # Actualizar en la caché interna
+        self.__users[index] = user.to_dict()
+        
+        # Guardar en el archivo
+        self.__file.write(self.__users)
+        
+        return True

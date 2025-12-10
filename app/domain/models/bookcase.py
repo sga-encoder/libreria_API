@@ -15,6 +15,7 @@ class BookCase:
         self.set_weighCapacity(weighCapacity)
         self.set_capacityStands(capacityStands)
         self.set_store(store)
+        
     @classmethod
     def from_dict(cls, data : dict): 
         return cls(

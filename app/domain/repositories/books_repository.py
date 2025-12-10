@@ -155,6 +155,52 @@ class BooksRepository(RepositoriesInterface[Book]):
         self.__file.write(self.__books)
         return True
     
+    def loan(self, id: str) -> bool:
+        """Marca un libro como prestado (is_borrowed = True).
+        
+        Busca el libro por su id_IBSN, marca como prestado y persiste el cambio.
+        
+        Args:
+            id (str): id_IBSN del libro a marcar como prestado.
+            
+        Returns:
+            bool: True si se marcó como prestado exitosamente, False si no se encontró.
+        """
+        index = self.__search_id(id)
+        if index == -1:
+            print(f"Book with id {id} not found for loan.")
+            return False
+        
+        instance = Book.from_dict(self.__books[index])
+        instance.set_is_borrowed(True)
+        self.__books[index] = instance.to_dict()
+        self.__file.write(self.__books)
+        
+        return True
+    
+    def return_loan(self, id: str) -> bool:
+        """Marca un libro como disponible (is_borrowed = False).
+        
+        Busca el libro por su id_IBSN, marca como disponible y persiste el cambio.
+        
+        Args:
+            id (str): id_IBSN del libro a marcar como disponible.
+            
+        Returns:
+            bool: True si se marcó como disponible exitosamente, False si no se encontró.
+        """
+        index = self.__search_id(id)
+        if index == -1:
+            print(f"Book with id {id} not found for return.")
+            return False
+        
+        instance = Book.from_dict(self.__books[index])
+        instance.set_is_borrowed(False)
+        self.__books[index] = instance.to_dict()
+        self.__file.write(self.__books)
+        
+        return True
+    
     def __str__(self) -> str:
         """Representación legible del repositorio."""
         file_info = getattr(self.__file, "path", getattr(self.__file, "url", str(self.__file)))
@@ -163,3 +209,4 @@ class BooksRepository(RepositoriesInterface[Book]):
     def __repr__(self) -> str:
         """Representación no ambigua para debugging."""
         return f"BooksRepository(file={self.__file!r}, books_count={len(self.__books)})"
+    
