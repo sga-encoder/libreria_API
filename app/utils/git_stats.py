@@ -41,9 +41,10 @@ class GitStats:
             Dictionary with 'additions', 'deletions', and 'commits' counts
         """
         try:
+            # Use --fixed-strings to treat author name literally (avoid regex interpretation)
             # Get additions and deletions
             result = subprocess.run(
-                ['git', 'log', '--all', '--author=' + author, '--pretty=tformat:', '--numstat'],
+                ['git', 'log', '--all', '--author=' + author, '--fixed-strings', '--pretty=tformat:', '--numstat'],
                 capture_output=True,
                 text=True,
                 check=True
@@ -67,7 +68,7 @@ class GitStats:
             
             # Get commit count
             commit_result = subprocess.run(
-                ['git', 'log', '--all', '--author=' + author, '--oneline'],
+                ['git', 'log', '--all', '--author=' + author, '--fixed-strings', '--oneline'],
                 capture_output=True,
                 text=True,
                 check=True

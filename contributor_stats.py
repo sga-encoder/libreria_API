@@ -26,9 +26,12 @@ def get_contributors() -> List[str]:
 def get_contributor_stats(author: str) -> Dict[str, int]:
     """Get statistics for a specific contributor."""
     try:
+        # Escape special regex characters in author name for git grep patterns
+        # Use --fixed-strings to treat author name literally
+        
         # Get additions and deletions
         result = subprocess.run(
-            ['git', 'log', '--all', '--author=' + author, '--pretty=tformat:', '--numstat'],
+            ['git', 'log', '--all', '--author=' + author, '--fixed-strings', '--pretty=tformat:', '--numstat'],
             capture_output=True,
             text=True,
             check=True
@@ -52,7 +55,7 @@ def get_contributor_stats(author: str) -> Dict[str, int]:
         
         # Get commit count
         commit_result = subprocess.run(
-            ['git', 'log', '--all', '--author=' + author, '--oneline'],
+            ['git', 'log', '--all', '--author=' + author, '--fixed-strings', '--oneline'],
             capture_output=True,
             text=True,
             check=True
