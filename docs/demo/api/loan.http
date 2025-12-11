@@ -1,35 +1,90 @@
 @host = http://localhost:8000/api/v1/loan
-@token = <YOUR_ACCESS_TOKEN_HERE>
+@userToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmaW5uLmFkdmVudHVyZUB0aW1lLmNhcnRvb24iLCJyb2xlIjoiVVNFUiIsImV4cCI6MTc2NTMyMjcwN30.d6FBfo2XDgSyEPYvCV5yFs5hq7nUT9bJKj2qp7W59ZE
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0aGVQcmltby5hZHZlbnR1cmVAdGltZS5jYXJ0b29uIiwicm9sZSI6IkFETUlOIiwiZXhwIjoxNzY1MzIyNzA3fQ.d6FBfo2XDgSyEPYvCV5yFs5hq7nUT9bJKj2qp7W59ZE
 
 ### =============================================================================
-### PRÉSTAMOS (Loans)
+### PRÉSTAMOS (Loans) - CRUD Básico
 ### =============================================================================
 
 ### Crear préstamo
+# Nota: user y book son emails/ISBN respectivamente
 POST {{host}}/
 Content-Type: application/json
-# Authorization: Bearer {{token}}
 
 {
-  "user_id": "user123",
-  "book_isbn": "978-1234567890"
+  "user": "finn.adventure@time.cartoon",
+  "book": "9780743273565",
+  "loanDate": "2025-12-11T10:00:00"
 }
 
 ### Leer préstamo por ID
-GET {{host}}/loan-id-123
+GET {{host}}/17652233141580001
 
 ### Leer todos los préstamos
 GET {{host}}/
 
 ### Actualizar préstamo (cambiar libro)
-PATCH {{host}}/loan-id-123
+PATCH {{host}}/17652233141580001
 Content-Type: application/json
-# Authorization: Bearer {{token}}
 
 {
-  "book_isbn": "978-0987654321"
+  "book": "9780451524935"
 }
 
 ### Eliminar préstamo (devolver libro)
-DELETE {{host}}/loan-id-123
-# Authorization: Bearer {{token}}
+DELETE {{host}}/17652233141580001
+
+### =============================================================================
+### BOOKCASE - Gestión de ordenamiento de estanterías
+### =============================================================================
+
+### Obtener estado actual del BookCase
+GET {{host}}/bookcase/status
+
+### Configurar BookCase con algoritmo DEFICIENT
+POST {{host}}/bookcase/configure
+Content-Type: application/json
+
+{
+  "algorithm_type": "DEFICIENT",
+  "weight_capacity": 10.0,
+  "capacity_stands": 5
+}
+
+### Configurar BookCase con algoritmo OPTIMOUM
+POST {{host}}/bookcase/configure
+Content-Type: application/json
+
+{
+  "algorithm_type": "OPTIMOUM",
+  "weight_capacity": 15.0,
+  "capacity_stands": 8
+}
+
+### Desactivar BookCase (préstamos sin ordenamiento)
+DELETE {{host}}/bookcase/disable
+
+### Ejecutar organización manual (REQUIERE ADMIN)
+POST {{host}}/bookcase/organize
+Authorization: Bearer {{adminToken}}
+
+### =============================================================================
+### NOTAS IMPORTANTES
+### =============================================================================
+
+# PRÉSTAMOS:
+# - user: Email del usuario registrado
+# - book: ISBN del libro en el inventario
+# - loanDate: Fecha y hora del préstamo en formato ISO 8601
+
+# BOOKCASE:
+# - algorithm_type: "DEFICIENT" o "OPTIMOUM"
+# - weight_capacity: Capacidad de peso en kg
+# - capacity_stands: Número de estantes disponibles
+# - La organización manual requiere token de administrador
+
+# ALGORITMOS:
+# - DEFICIENT: Algoritmo de ordenamiento básico/deficiente
+# - OPTIMOUM: Algoritmo de ordenamiento óptimo
+
+# Para obtener tokens válidos, usar los endpoints de /auth/login

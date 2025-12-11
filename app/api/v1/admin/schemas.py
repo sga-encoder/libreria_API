@@ -12,3 +12,9 @@ class AdminUpdate(BaseModel):
     fullName: Optional[str] = None
     email: Optional[str] = None
     password: Optional[str] = None
+
+# Modelo para crear un BookCase
+class BookCaseCreate(BaseModel):
+    typeOrdering: str  # "DEFICIENT" o "OPTIMOUM"
+    weighCapacity: float
+    capacityStands: int

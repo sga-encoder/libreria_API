@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import Optional
-from .schemas import AdminCreate, AdminUpdate
+from .schemas import AdminCreate, AdminUpdate, BookCaseCreate
 from app.core import settings
 from .services import AdminAPIService
 from app.dependencies import get_current_admin, oauth2_scheme
+from app.domain.models.enums import TypeOrdering
 
 admin_router = APIRouter(
     prefix="/api/v1/admin",
@@ -60,3 +61,40 @@ def delete(id: str):
     """Eliminar un administrador"""
     data = admin_service.delete_admin(id)
     return {"message": f"administrador {id} eliminado satisfactoriamente", "data": data}
+
+@admin_router.post("/bookcase", dependencies=[Depends(get_current_admin)])
+def create_bookcase(bookcase_data: BookCaseCreate):
+    """Crear un nuevo bookcase en la biblioteca"""
+    try:
+        # Validar el tipo de ordenamiento
+        if bookcase_data.typeOrdering not in ["DEFICIENT", "OPTIMOUM"]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="typeOrdering debe ser 'DEFICIENT' o 'OPTIMOUM'"
+            )
+        
+        # Convertir el string a enum
+        type_ordering = TypeOrdering[bookcase_data.typeOrdering]
+        
+        # Por ahora solo almacenamos la información del bookcase
+        # La integración completa con BookCase, BookShelf y Book se puede hacer después
+        bookcase_info = {
+            "typeOrdering": bookcase_data.typeOrdering,
+            "weighCapacity": bookcase_data.weighCapacity,
+            "capacityStands": bookcase_data.capacityStands
+        }
+        
+        return {
+            "message": "Bookcase creado satisfactoriamente",
+            "data": bookcase_info
+        }
+    except KeyError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="typeOrdering inválido. Use 'DEFICIENT' o 'OPTIMOUM'"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error al crear el bookcase: {str(e)}"
+        )

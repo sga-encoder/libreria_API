@@ -55,6 +55,43 @@ DELETE {{host}}/admin/17652233141580001
 Authorization: Bearer {{adminToken}}
 
 ### =============================================================================
+### GESTIÓN DE BOOKCASES (Solo Admins)
+### =============================================================================
+
+### Crear un nuevo bookcase con ordenamiento OPTIMOUM
+POST {{host}}/admin/bookcase
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "typeOrdering": "OPTIMOUM",
+  "weighCapacity": 500.0,
+  "capacityStands": 5
+}
+
+### Crear un bookcase con ordenamiento DEFICIENT
+POST {{host}}/admin/bookcase
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "typeOrdering": "DEFICIENT",
+  "weighCapacity": 300.0,
+  "capacityStands": 3
+}
+
+### Intentar crear bookcase con tipo inválido (debe fallar)
+POST {{host}}/admin/bookcase
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "typeOrdering": "INVALIDO",
+  "weighCapacity": 400.0,
+  "capacityStands": 4
+}
+
+### =============================================================================
 ### NOTAS IMPORTANTES
 ### =============================================================================
 

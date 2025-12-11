@@ -2,7 +2,7 @@ from .book import Book
 from .bookshelf import BookShelf
 from .enums import TypeOrdering
 
-class BookCase:
+class  BookCase:
     _stands : BookShelf
     _TypeOrdering : TypeOrdering
     _weighCapacity : float

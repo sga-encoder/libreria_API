@@ -4,7 +4,7 @@ Módulo de servicios de inventario.
 Proporciona la clase InventoryService que maneja la carga, lectura,
 creación, actualización y eliminación de libros usando BooksRepository.
 Mantiene tanto la estructura de pila (inventario) como una lista ordenada.
-"""
+ """
 from app.domain.repositories import BooksRepository
 from app.domain.structures import Stack
 from app.domain.models import Book
