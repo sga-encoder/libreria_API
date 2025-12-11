@@ -61,12 +61,17 @@ class InventoryService:
         En caso de error inicializa estructuras vacías y registra el error por consola.
         """
         try:
-            self.__inventary = self.__books_repository.read_all()
-            # Cargar los libros en el inventario de la biblioteca
-            self.__order_inventary = insertion_sort(
-                self.__inventary.to_list(),
-                key=lambda book: book.get_id_IBSN()
-            )
+            inventary = self.__books_repository.read_all()
+            if inventary is None:
+                self.__inventary = Stack[Book]()
+                self.__order_inventary = []
+            else:
+                self.__inventary = inventary
+                # Cargar los libros en el inventario de la biblioteca
+                self.__order_inventary = insertion_sort(
+                    self.__inventary.to_list(),
+                    key=lambda book: book.get_id_IBSN()
+                )
         except Exception as e:
             print(f"Error loading inventory: {e}")
             self.__inventary = Stack[Book]()
@@ -105,14 +110,14 @@ class InventoryService:
             id_IBSN (str): Identificador ISBN del libro.
 
         Returns:
-            Book: Libro encontrado, o lanza/retorna la excepción en caso de error.
+            Book: Libro encontrado, o None en caso de error.
         """
         try:
             book = self.__books_repository.read(id_IBSN)
             return book
         except Exception as e:
             print(f"Error reading book: {e}")
-            return e
+            return None
     
     def read_all_books(self) -> list[Book] :
         """
@@ -127,7 +132,7 @@ class InventoryService:
             return books.to_list() if books else None
         except Exception as e:
             print(f"Error reading all books: {e}")
-            return e
+            return None
     
     def update_book(self, id_IBSN: str, json: dict) -> Book :
         """
@@ -149,7 +154,7 @@ class InventoryService:
             return book
         except Exception as e:
             print(f"Error updating book: {e}")
-            return e
+            return None
     
     def delete_book(self, id_IBSN: str) -> bool:
         """
@@ -169,6 +174,6 @@ class InventoryService:
             return result
         except Exception as e:
             print(f"Error deleting book: {e}")
-            return e
+            return False
 
 

@@ -114,6 +114,41 @@ def delete(id: str):
     }
 
 
+@loan_router.get("/reservations/queue")
+def get_reservations_queue():
+    """
+    Obtener la lista de espera (reservation queue) de libros.
+    
+    Retorna la cola de reservas con todos los usuarios que están esperando
+    por libros que actualmente están prestados.
+    
+    Retorna:
+    - dict: Mensaje de éxito y lista de reservas con su posición.
+    
+    Ejemplo de respuesta:
+    {
+        "message": "Cola de reservas obtenida exitosamente",
+        "data": [
+            {
+                "position": 1,
+                "user_email": "juan.perez@test.com",
+                "user_name": "Juan Pérez",
+                "book_isbn": "9780156012195",
+                "book_title": "El Principito"
+            },
+            ...
+        ],
+        "total_reservations": 4
+    }
+    """
+    reservations = loan_api_service.get_reservations_queue()
+    return {
+        "message": "Cola de reservas obtenida exitosamente" if reservations else "No hay reservas en espera",
+        "data": reservations,
+        "total_reservations": len(reservations)
+    }
+
+
 # ════════════════════════════════════════════════════════════════════════════
 # ENDPOINTS DE BOOKCASE - Gestionar ordenamiento de libros
 # ════════════════════════════════════════════════════════════════════════════

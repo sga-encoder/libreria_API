@@ -36,7 +36,7 @@ class LoanService:
     __inventory_service: InventoryService
     __bookcase: Optional[BookCase]
 
-    def __init__(self, url: str, reservations_queue: Queue[tuple[User, Book]], users: list[User], inventory_service: InventoryService, bookcase: Optional[BookCase] = None) -> None:
+    def __init__(self, url: str, reservations_queue: Queue[tuple[User, Book]], users: list[User], inventory_service: InventoryService, user_service, bookcase: Optional[BookCase] = None) -> None:
         """
         Inicializa el servicio y carga los préstamos desde el repositorio.
 
@@ -45,6 +45,7 @@ class LoanService:
             reservations_queue (Queue): Cola de reservas compartida.
             users (list[User]): Lista de usuarios del sistema.
             inventory_service (InventoryService): Servicio de inventario para gestionar libros.
+            user_service (UserService): Servicio de usuarios para actualizar préstamos.
             bookcase (Optional[BookCase]): Estantería para organizar libros según algoritmo de ordenamiento.
 
         No devuelve nada. En caso de error, inicializa estructura vacía.
@@ -53,6 +54,7 @@ class LoanService:
         self.__reservations_queue = reservations_queue
         self.__users = users
         self.__inventory_service = inventory_service
+        self.__user_service = user_service
         self.__bookcase = bookcase
         self.__load()
 
@@ -275,24 +277,69 @@ class LoanService:
             reservations = self.__reservations_queue.to_list()
             for idx, (reserved_user, reserved_book) in enumerate(reservations):
                 if reserved_book.get_id_IBSN() == book.get_id_IBSN():
-                    print(f"Hay una reserva para este libro. Asignando al próximo usuario en la cola.")
-                    # Crear el nuevo préstamo para el usuario en reserva
-                    created = self.create_loan(reserved_user, reserved_book)
+                    print(f"📚 Procesando reserva: asignando libro '{book.get_title()}' a {reserved_user.get_email()}")
                     
-                    if created is not None:
-                        # Eliminar la reserva procesada y actualizar la cola
-                        reservations.pop(idx)
-                        
-                        # Vaciar la cola actual (mantener la referencia)
-                        while not self.__reservations_queue.is_empty():
-                            self.__reservations_queue.pop()
-                        
-                        # Re-poblar con las reservas restantes
-                        for item in reservations:
-                            self.__reservations_queue.push(item)
+                    # Eliminar la reserva de la cola PRIMERO
+                    reservations.pop(idx)
+                    
+                    # Vaciar la cola actual (mantener la referencia)
+                    while not self.__reservations_queue.is_empty():
+                        self.__reservations_queue.pop()
+                    
+                    # Re-poblar con las reservas restantes
+                    for item in reservations:
+                        self.__reservations_queue.push(item)
+                    
+                    # Ahora crear el préstamo usando el libro recién liberado (no el de la cola)
+                    # Marcar libro como prestado en todas las colecciones PRIMERO
+                    self.__mark_book_as_borrowed(book)
+                    
+                    # Persistir el cambio en el libro
+                    try:
+                        self.__inventory_service.update_book(book.get_id_IBSN(), {"is_borrowed": True})
+                    except Exception as e:
+                        print(f"Error persistiendo estado de libro prestado: {e}")
+                    
+                    # Crear el préstamo con datetime actual
+                    loan_data = {
+                        "user": reserved_user.to_dict(),
+                        "book": book.to_dict(),
+                        "loanDate": datetime.now().isoformat()
+                    }
+                    
+                    # Persistir en el repositorio
+                    try:
+                        loan = self.__loans_repository.create(loan_data)
+                    except Exception as e:
+                        print(f"❌ Error persistiendo préstamo desde reserva: {e}")
+                        return False
+                    
+                    # Actualizar lista de préstamos del usuario (guardar solo el ID)
+                    try:
+                        reserved_user.add_loan(loan.get_id())
+                        # Persistir el cambio en el usuario
+                        self.__user_service.update_user(reserved_user.get_id(), {"loans": reserved_user.get_loans()})
+                    except Exception as e:
+                        print(f"Error añadiendo préstamo a usuario: {e}")
+                    
+                    # Extraer libro del inventario
+                    self.__remove_book_from_inventory(book)
+                    
+                    # Aplicar algoritmo de ordenamiento si existe bookcase
+                    bookcase = self.__get_bookcase()
+                    if bookcase:
+                        self.__apply_ordering_algorithm(bookcase)
+                    
+                    # Añadir a la lista local de préstamos
+                    try:
+                        self.__loans_records.append(loan)
+                    except Exception as e:
+                        print(f"Error añadiendo préstamo a registros: {e}")
+                    
+                    print(f"✅ Préstamo automático creado exitosamente desde reserva")
                     return True
         except Exception as e:
-            print(f"Error procesando cola de reservas: {e}")
+            print(f"❌ Error procesando cola de reservas: {e}")
         
         return False
 
@@ -327,11 +374,20 @@ class LoanService:
                 print(f"Error añadiendo a cola de reservas: {e}")
             return None
         
-        # Crear el préstamo con datetime actual
+        # Marcar libro como prestado en todas las colecciones PRIMERO
+        self.__mark_book_as_borrowed(book)
+        
+        # Persistir el cambio en el libro
+        try:
+            self.__inventory_service.update_book(book.get_id_IBSN(), {"is_borrowed": True})
+        except Exception as e:
+            print(f"Error persistiendo estado de libro prestado: {e}")
+        
+        # Crear el préstamo con datetime actual (ahora el libro ya tiene is_borrowed: true)
         loan_data = {
             "user": user.to_dict(),
             "book": book.to_dict(),
-            "loan_date": datetime.now().isoformat()
+            "loanDate": datetime.now().isoformat()
         }
         
         # Persistir en el repositorio
@@ -341,14 +397,13 @@ class LoanService:
             print(f"Error persistiendo préstamo: {e}")
             return None
         
-        # Actualizar lista de préstamos del usuario
+        # Actualizar lista de préstamos del usuario (guardar solo el ID)
         try:
-            user.add_loan(loan)
+            user.add_loan(loan.get_id())
+            # Persistir el cambio en el usuario
+            self.__user_service.update_user(user.get_id(), {"loans": user.get_loans()})
         except Exception as e:
             print(f"Error añadiendo préstamo a usuario: {e}")
-        
-        # Marcar libro como prestado en todas las colecciones
-        self.__mark_book_as_borrowed(book)
         
         # Extraer libro del inventario
         self.__remove_book_from_inventory(book)
@@ -531,18 +586,7 @@ class LoanService:
         book = loan_to_delete.get_book()
         user = loan_to_delete.get_user()
         
-        # Reintegrar el libro al inventario
-        self.__add_book_back_to_inventory(book)
-        
-        # Aplicar algoritmo de ordenamiento al agregar el libro
-        bookcase = self.__get_bookcase()
-        if bookcase:
-            self.__apply_ordering_algorithm(bookcase)
-        
-        # Procesar reservas para el libro liberado
-        self.__process_reservation_queue(book)
-        
-        # Eliminar del repositorio
+        # Eliminar del repositorio primero
         try:
             result = self.__loans_repository.delete(id)
             if not result:
@@ -563,5 +607,25 @@ class LoanService:
             user.remove_loan(loan_to_delete)
         except Exception as e:
             print(f"Error eliminando préstamo del usuario: {e}")
+        
+        # Persistir cambios del usuario (lista de préstamos actualizada)
+        self.__user_service.update_user(user.get_id(), {"loans": user.get_loans()})
+        
+        # Reintegrar el libro al inventario (marca is_borrowed = False)
+        self.__add_book_back_to_inventory(book)
+        
+        # Persistir cambios del libro como disponible
+        # IMPORTANTE: Hacerlo ANTES de procesar reservas
+        self.__inventory_service.update_book(book.get_id_IBSN(), {"is_borrowed": False})
+        
+        # Aplicar algoritmo de ordenamiento al agregar el libro
+        bookcase = self.__get_bookcase()
+        if bookcase:
+            self.__apply_ordering_algorithm(bookcase)
+        
+        # Procesar reservas para el libro liberado
+        # Esto creará un nuevo préstamo si hay alguien esperando
+        # y marcará el libro como prestado nuevamente
+        self.__process_reservation_queue(book)
         
         return True

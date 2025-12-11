@@ -55,7 +55,7 @@ class DeficientOrganizer:
         if not books:
             # Crear BookCase vacío
             empty_bookcase = BookCase(
-                stands=BookShelf([]),
+                stands=[],
                 TypeOrdering=TypeOrdering.DEFICIENT,
                 weighCapacity=self._weight_capacity,
                 capacityStands=0,
@@ -66,53 +66,84 @@ class DeficientOrganizer:
         # Reiniciar combinaciones peligrosas
         self._dangerous_combinations = []
         
-        # Lista para almacenar todos los BookShelf creados
-        all_bookshelves: List[BookShelf] = []
-        
-        # Conjunto para rastrear qué libros ya han sido almacenados
-        stored_books = set()
-        
-        # Generar todas las combinaciones posibles de libros
-        # Usando fuerza bruta: probamos todas las combinaciones de tamaño 1 hasta n
         n = len(books)
+        print(f"\n🔍 Organizando {n} libros con capacidad {self._weight_capacity} kg...")
+        print(f"   Estrategia: Algoritmo DEFICIENT (greedy + detección de peligros)")
         
-        for size in range(1, n + 1):
-            # Generar todas las combinaciones de este tamaño
-            combinations = self._generate_combinations(books, size)
+        # Lista para almacenar estantes creados
+        all_bookshelves: List[BookShelf] = []
+        remaining_books = books.copy()
+        
+        # Estrategia DEFICIENT mejorada:
+        # 1. Usar greedy First Fit para crear estantes eficientemente
+        # 2. Solo analizar combinaciones peligrosas relevantes (las que involucran libros aún no almacenados)
+        
+        shelf_number = 0
+        while remaining_books:
+            shelf_number += 1
+            current_shelf_books = []
+            current_weight = 0.0
             
-            for combination in combinations:
-                # Calcular peso total de esta combinación
-                total_weight = sum(book.get_weight() for book in combination)
+            # Intentar llenar el estante actual con tantos libros como sea posible (First Fit)
+            i = 0
+            while i < len(remaining_books):
+                book = remaining_books[i]
+                new_weight = current_weight + book.get_weight()
                 
-                # Verificar si supera el umbral de riesgo
-                if total_weight > self._weight_capacity:
-                    # Combinación peligrosa: registrarla
-                    self._dangerous_combinations.append((combination, total_weight))
+                if new_weight <= self._weight_capacity:
+                    # El libro cabe, agregarlo al estante
+                    current_shelf_books.append(book)
+                    current_weight = new_weight
+                    remaining_books.pop(i)
                 else:
-                    # Combinación segura: crear un BookShelf
-                    # Solo crear si al menos un libro no ha sido almacenado
-                    has_new_books = any(id(book) not in stored_books for book in combination)
-                    
-                    if has_new_books:
-                        # Crear un nuevo BookShelf con esta combinación
-                        bookshelf = BookShelf(books=combination)
-                        all_bookshelves.append(bookshelf)
-                        
-                        # Marcar estos libros como almacenados
-                        for book in combination:
-                            stored_books.add(id(book))
-                
-                # Verificar si todos los libros ya están almacenados
-                if len(stored_books) >= len(books):
-                    break
+                    # No cabe, intentar con el siguiente libro
+                    i += 1
             
-            # Verificar si todos los libros ya están almacenados
-            if len(stored_books) >= len(books):
+            # Crear el estante si tiene libros
+            if current_shelf_books:
+                bookshelf = BookShelf(books=current_shelf_books)
+                all_bookshelves.append(bookshelf)
+                print(f"   Estante {shelf_number}: {len(current_shelf_books)} libro(s), {current_weight:.2f}/{self._weight_capacity} kg")
+            else:
+                # No se pudo colocar ningún libro (todos exceden capacidad individualmente)
+                # Crear estantes individuales para los restantes
+                print(f"   ⚠️ Libros restantes exceden capacidad individual")
+                for book in remaining_books:
+                    bookshelf = BookShelf(books=[book])
+                    all_bookshelves.append(bookshelf)
+                    print(f"   Estante {shelf_number}: {book.get_title()} ({book.get_weight()} kg) - EXCEDE CAPACIDAD")
+                    shelf_number += 1
                 break
+        
+        # Análisis de combinaciones peligrosas (solo las más relevantes)
+        # Analizar combinaciones de 2 libros (pares peligrosos)
+        print(f"\n🔍 Analizando combinaciones peligrosas...")
+        for i in range(len(books)):
+            for j in range(i + 1, len(books)):
+                combination = [books[i], books[j]]
+                total_weight = books[i].get_weight() + books[j].get_weight()
+                if total_weight > self._weight_capacity:
+                    self._dangerous_combinations.append((combination, total_weight))
+        
+        # Analizar combinaciones de 3 libros (trios peligrosos) - limitado
+        if len(books) <= 15:  # Solo si hay pocos libros
+            for i in range(len(books)):
+                for j in range(i + 1, len(books)):
+                    for k in range(j + 1, len(books)):
+                        combination = [books[i], books[j], books[k]]
+                        total_weight = sum(b.get_weight() for b in combination)
+                        if total_weight > self._weight_capacity:
+                            self._dangerous_combinations.append((combination, total_weight))
+        
+        print(f"   Combinaciones peligrosas detectadas: {len(self._dangerous_combinations)}")
+        
+        # Asignar IDs a los BookShelf generados
+        for idx, shelf in enumerate(all_bookshelves, 1):
+            shelf.set_id(f"SHELF-DEF-{idx:03d}")
         
         # Crear el BookCase con todos los BookShelf generados
         bookcase = BookCase(
-            stands=all_bookshelves if all_bookshelves else BookShelf([]),
+            stands=all_bookshelves,
             TypeOrdering=TypeOrdering.DEFICIENT,
             weighCapacity=self._weight_capacity,
             capacityStands=len(all_bookshelves),

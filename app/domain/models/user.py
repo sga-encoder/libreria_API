@@ -57,14 +57,38 @@ class User(Person):
         
     def remove_loan(self, loan):
         self.__loans.remove(loan)
+    
+    def update_from_dict(self, data: dict):
+        """Actualiza los atributos del usuario a partir de un diccionario.
+
+        Args:
+            data (dict): Diccionario con los campos a actualizar. 
+                         Puede incluir 'fullName', 'email', 'new_password', 'role', 'loans'.
+        """
+        # Llamar al método de la clase padre para actualizar campos comunes
+        super().update_from_dict(data)
+        
+        # Actualizar el campo específico de User: loans
+        if "loans" in data:
+            self.__set_loans(data["loans"])
         
     def to_dict(self):
+        # Asegurarse de que loans solo contenga IDs (strings), no objetos Loan completos
+        loan_ids = []
+        for loan in self.__loans:
+            if isinstance(loan, str):
+                loan_ids.append(loan)
+            elif hasattr(loan, 'get_id'):
+                loan_ids.append(loan.get_id())
+            else:
+                loan_ids.append(str(loan))
+        
         data = {
             "id": self._id,
             "fullName": self._fullName,
             "email": self._email,
             "password": self._password,
-            "loans": self.__loans,
+            "loans": loan_ids,
             "role": self._role.name,
         }
         return data

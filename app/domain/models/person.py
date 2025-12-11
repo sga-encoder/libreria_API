@@ -201,7 +201,7 @@ class Person:
         Args:
             password (str): La contraseña en texto plano.
         """
-        self._password = generate_password_hash(password, method="pbkdf2:sha256", salt_length=16)
+        self._password = generate_password_hash(password)
 
     def __set_role(self, role: PersonRole):
         """Asigna el rol de la persona.

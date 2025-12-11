@@ -42,7 +42,7 @@ class LoanAPIService:
         reservations_queue: Queue[Tuple] = Queue()
         users = self.__user_service.get_users_all() or []
         self.__bookcase = bookcase
-        self.__loan_service = LoanService(loan_url, reservations_queue, users, self.__inventory_service, bookcase)
+        self.__loan_service = LoanService(loan_url, reservations_queue, users, self.__inventory_service, self.__user_service, bookcase)
     
     def set_bookcase(self, bookcase: BookCase) -> None:
         """Establece o actualiza la estantería para aplicar algoritmos de ordenamiento.
@@ -126,9 +126,38 @@ class LoanAPIService:
             organizer = DeficientOrganizer(weight_capacity)
             bookcase_result, dangerous_combinations = organizer.organize(books)
             
-            result["dangerous_combinations_found"] = len(dangerous_combinations)
+            # Actualizar el bookcase con el resultado
+            self.__bookcase = bookcase_result
+            self.__loan_service.set_bookcase(bookcase_result)
             
+            result["dangerous_combinations_found"] = len(dangerous_combinations)
+            result["shelves_created"] = len(bookcase_result.get_stands())
+            result["total_books_in_shelves"] = sum(len(shelf.get_books()) for shelf in bookcase_result.get_stands())
+            
+            # Agregar detalles de los estantes
+            shelves_info = []
+            for shelf in bookcase_result.get_stands():
+                shelf_info = {
+                    "id": shelf.get_id(),
+                    "books_count": len(shelf.get_books()),
+                    "total_weight": shelf.get_current_weight(),
+                    "books": [{"title": book.get_title(), "weight": book.get_weight()} for book in shelf.get_books()]
+                }
+                shelves_info.append(shelf_info)
+            
+            result["shelves"] = shelves_info
+            
+            # Agregar combinaciones peligrosas
             if dangerous_combinations:
+                dangerous_info = []
+                for combination, total_weight in dangerous_combinations:
+                    dangerous_info.append({
+                        "books": [book.get_title() for book in combination],
+                        "total_weight": total_weight,
+                        "excess_weight": total_weight - weight_capacity
+                    })
+                result["dangerous_combinations"] = dangerous_info
+                
                 print(f"⚠️ Se encontraron {len(dangerous_combinations)} combinaciones peligrosas.")
                 organizer.print_dangerous_combinations()
         
@@ -163,10 +192,11 @@ class LoanAPIService:
             # Buscar el usuario
             user = None
             users = self.__user_service.get_users_all()
-            for u in users:
-                if u.get_email() == user_email:
-                    user = u
-                    break
+            if users is not None:
+                for u in users:
+                    if u.get_email() == user_email:
+                        user = u
+                        break
             
             if user is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
@@ -297,3 +327,45 @@ class LoanAPIService:
         except Exception as e:
             print(f"Error deleting loan: {e}")
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error eliminando préstamo")
+    
+    def get_reservations_queue(self) -> list[dict]:
+        """Obtiene la lista de reservas en espera.
+        
+        Convierte la cola de reservas en una lista de diccionarios con información
+        del usuario y el libro que está esperando.
+        
+        Returns:
+            list[dict]: Lista de reservas con formato:
+                [
+                    {
+                        "position": 1,
+                        "user_email": "user@example.com",
+                        "user_name": "Usuario Nombre",
+                        "book_isbn": "9780156012195",
+                        "book_title": "El Principito"
+                    },
+                    ...
+                ]
+        
+        Raises:
+            HTTPException: 500 en errores internos.
+        """
+        try:
+            queue = self.__loan_service.get_reservations_queue()
+            reservations = []
+            position = 1
+            
+            for user, book in queue:
+                reservations.append({
+                    "position": position,
+                    "user_email": user.get_email(),
+                    "user_name": user.get_fullName(),
+                    "book_isbn": book.get_id_IBSN(),
+                    "book_title": book.get_title()
+                })
+                position += 1
+            
+            return reservations
+        except Exception as e:
+            print(f"Error getting reservations queue: {e}")
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error obteniendo cola de reservas")

@@ -21,22 +21,26 @@ def create(admin: AdminCreate):
     - Si NO hay admins: permite crear el primer admin sin autenticación
     - Si YA hay admins: requiere token de admin para crear más
     """
-    # admins = admin_service.read_all_admins()
-    
-    # # Si ya hay admins, verificar autenticación
-    # if len(admins) > 0:
-    #     if not token:
-    #         raise HTTPException(
-    #             status_code=status.HTTP_401_UNAUTHORIZED,
-    #             detail="Se requiere autenticación de administrador"
-    #         )
-    #     # Verificar que sea admin válido
-    #     current_admin = get_current_admin(token)
-    
-    # # Crear el nuevo admin
-    print("Creating new admin...")
-    data = admin_service.create_admin(admin)
-    return {"message": "administrador creado satisfactoriamente", "data": data.to_dict()}
+    try:
+        print(f"Creating new admin with data: {admin}")
+        data = admin_service.create_admin(admin)
+        if data is None:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Error al crear administrador: el servicio devolvió None"
+            )
+        print(f"Admin created successfully: {data.get_id()}")
+        return {"message": "administrador creado satisfactoriamente", "data": data.to_dict()}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error in create endpoint: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error al crear administrador: {str(e)}"
+        )
 
 @admin_router.get("/{id}", dependencies=[Depends(get_current_admin)])
 def read(id: str):

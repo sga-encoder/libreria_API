@@ -1,12 +1,11 @@
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+from werkzeug.security import generate_password_hash, check_password_hash
 from fastapi.security import OAuth2PasswordBearer
 
 from .config import settings
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/auth/token")
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:

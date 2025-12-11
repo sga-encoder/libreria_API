@@ -36,10 +36,16 @@ class AdminAPIService:
         """
         try:
             data = json.model_dump()
+            print(f"AdminAPIService.create_admin: Creating admin with data: {data}")
             result = self.__admin_service.add(data)
+            print(f"AdminAPIService.create_admin: Result from add: {result}")
+            if result is None:
+                print("AdminAPIService.create_admin: add() returned None!")
             return result
         except Exception as e:
             print(f"Error creating admin: {e}")
+            import traceback
+            traceback.print_exc()
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="No se pudo crear el administrador")
         
     def read_admin(self, id: str) -> User | None:
@@ -73,7 +79,7 @@ class AdminAPIService:
             HTTPException: Si no hay administradores o hay error.
         """
         try:
-            result = self.__admin_service.get_users()
+            result = self.__admin_service.get_users_all()
             if result is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No hay administradores disponibles")
             return result

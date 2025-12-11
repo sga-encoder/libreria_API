@@ -1,14 +1,75 @@
 @host = http://localhost:8000/api/v1
+@token = 
 
 ### =============================================================================
-### AUTENTICACIÓN
+### AUTENTICACIÓN - TESTS COMPLETOS
 ### =============================================================================
 
-### Login (JSON) - alternativa (usa /auth/login)
+### Test 1: Login como Admin
+# @name adminLogin
 POST {{host}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "crunchy.adventure@time.cartoon",
+  "email": "thePrimo.adventure@time.cartoon",
   "password": "adventuretime"
 }
+
+### Test 2: Login como Usuario Regular
+# @name userLogin
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "finn.adventure@time.cartoon",
+  "password": "adventuretime"
+}
+
+### Test 3: Login con credenciales incorrectas (debe fallar)
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario@inexistente.com",
+  "password": "passwordIncorrecto"
+}
+
+### Test 4: Verificar sesión actual (usar token obtenido del login)
+GET {{host}}/auth/me
+Authorization: Bearer {{token}}
+
+### Test 5: Acceso sin token (debe fallar 401)
+GET {{host}}/auth/me
+
+### =============================================================================
+### NOTAS
+### =============================================================================
+
+# USUARIOS DE PRUEBA:
+# 
+# Admin:
+#   Email: thePrimo.adventure@time.cartoon
+#   Password: adventuretime
+#
+# Usuarios regulares:
+#   Email: finn.adventure@time.cartoon
+#   Password: adventuretime
+#
+# INSTRUCCIONES:
+# 1. Ejecutar Test 1 o Test 2 para obtener el token
+# 2. Copiar el access_token de la respuesta
+# 3. Pegarlo en @token arriba
+# 4. Ejecutar Test 4 para verificar la sesión
+
+# RESPUESTA ESPERADA DEL LOGIN:
+# {
+#   "access_token": "eyJ...",
+#   "token_type": "bearer"
+# }
+
+# RESPUESTA ESPERADA DE /me:
+# {
+#   "email": "usuario@ejemplo.com",
+#   "fullName": "Nombre Usuario",
+#   "id": "..."
+# }

@@ -31,11 +31,15 @@ class UserService:
         En caso de error, inicializa la lista como vacía.
         """
         try:
-            self.__users =  insertion_sort(
-                self.__user_repository.read_all(),
-                key=lambda u: u.get_id()
-            )
-            self.__user_repository.save(self.__users)
+            users = self.__user_repository.read_all()
+            if users is None:
+                self.__users = []
+            else:
+                self.__users = insertion_sort(
+                    users,
+                    key=lambda u: u.get_id()
+                )
+                self.__user_repository.save(self.__users)
         except Exception as e:
             print(f"Error loading users: {e}")
             self.__users = []
@@ -64,6 +68,9 @@ class UserService:
             return user
         except Exception as e:
             print(f"Error adding user: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
             return None
         
     def get_user_by_id(self, user_id):

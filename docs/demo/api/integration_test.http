@@ -1,0 +1,578 @@
+### =============================================================================
+### TEST DE INTEGRACIÓN COMPLETO - BIBLIOTECA API
+### Incluye pruebas de lista de espera y gestión avanzada de préstamos
+### Ejecutar en orden para probar todo el flujo
+### =============================================================================
+### 
+### COMANDO PARA INICIAR EL SERVIDOR:
+### cd "c:\Tecnias de Prog Juan\Biblioteca\libreria_API"; uvicorn main:app --reload
+### O simplemente: .\run.ps1
+### =============================================================================
+
+@host = http://localhost:8000
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBiaWJsaW90ZWNhLnRlc3QiLCJyb2xlIjoiVVNFUiIsImV4cCI6MTc2NTQ0ODk4M30.u9TfcY4__-1PXlF89KKVU_0WnDZueT9N1AQUvj3dygU
+@user1Token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtYXJpYS5nYXJjaWFAdGVzdC5jb20iLCJyb2xlIjoiVVNFUiIsImV4cCI6MTc2NTQ0OTAyOH0.ZW7Y4uje6PKMkDxxYppBkAAmtrWjRh9K-rRbt5jvfFs
+@user2Token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJqdWFuLnBlcmV6QHRlc3QuY29tIiwicm9sZSI6IlVTRVIiLCJleHAiOjE3NjU0NDkwNjd9.MjeyP25h5pMUH5KKO52yP2lUV5kLmnRSzLWjdicEUgU
+@user3Token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbmEucm9kcmlndWV6QHRlc3QuY29tIiwicm9sZSI6IlVTRVIiLCJleHAiOjE3NjU0NDkxMDJ9.uNrA22Te2fgmiI5o9kErukL2JMuVpOGj9fWupuNlKeA
+@user4Token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjYXJsb3MuZmVybmFuZGV6QHRlc3QuY29tIiwicm9sZSI6IlVTRVIiLCJleHAiOjE3NjU0NDkxMzh9.YGQqhWr8_PmH19EhKg1vVomL9MoIPCIaAPCJPR7GUFo
+@user5Token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJsYXVyYS5zYW5jaGV6QHRlc3QuY29tIiwicm9sZSI6IlVTRVIiLCJleHAiOjE3NjU0NDkxNjl9.GRe7QOApOYFitacl45MP7K3HarjsyL2V0w2j_0uFbRI
+@user6Token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZWRyby5qaW1lbmV6QHRlc3QuY29tIiwicm9sZSI6IlVTRVIiLCJleHAiOjE3NjU0NDkxOTJ9.25PechH3zq5khjOphDkefmhzNx3zEVaRbpK-KUkmBBs
+@popularBookISBN = 9780156012195
+@loanId1 = 17654456428060002
+@loanId2 = 
+@loanId3 = 
+
+### =============================================================================
+### 1. HEALTH CHECK
+### =============================================================================
+
+### Test 01: Verificar que el servidor está funcionando
+GET {{host}}/
+
+### =============================================================================
+### 2. ADMIN FLOW - Crear y autenticar administrador
+### =============================================================================
+
+### Test 02: Crear el primer administrador (sin autenticación)
+POST {{host}}/api/v1/admin/
+Content-Type: application/json
+
+{
+  "fullName": "Admin Principal",
+  "email": "admin@biblioteca.test",
+  "password": "admin123"
+}
+
+### Test 03: Login como administrador
+# @name adminLogin
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@biblioteca.test",
+  "password": "admin123"
+}
+
+### Guardar token de admin manualmente:
+### Copiar el access_token de la respuesta y pegarlo arriba en @adminToken
+
+### Test 04: Verificar sesión de administrador
+GET {{host}}/api/v1/auth/me
+Authorization: Bearer {{adminToken}}
+
+### Test 05: Listar todos los administradores
+GET {{host}}/api/v1/admin/
+Authorization: Bearer {{adminToken}}
+
+### =============================================================================
+### 3. BOOKCASE CONFIGURATION
+### =============================================================================
+
+### Test 06: Configurar BookCase con algoritmo OPTIMOUM
+POST {{host}}/api/v1/loan/bookcase/configure
+Content-Type: application/json
+
+{
+  "algorithm_type": "OPTIMOUM",
+  "weight_capacity": 20.0,
+  "capacity_stands": 10
+}
+
+### Test 07: Obtener estado del BookCase
+GET {{host}}/api/v1/loan/bookcase/status
+
+### =============================================================================
+### 4. LOGIN DE USUARIOS - Los usuarios ya están en users.json
+### =============================================================================
+### NOTA: Los usuarios ya están creados en data/json/users.json
+### Todos tienen la contraseña: user123
+
+### Test 08: Listar todos los usuarios existentes
+GET {{host}}/api/v1/user/
+
+### Test 09: Login Usuario 1 - María García
+# @name user1Login
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "maria.garcia@test.com",
+  "password": "user123"
+}
+
+### Test 10: Login Usuario 2 - Juan Pérez
+# @name user2Login
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "juan.perez@test.com",
+  "password": "user123"
+}
+
+### Test 11: Login Usuario 3 - Ana Rodríguez
+# @name user3Login
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "ana.rodriguez@test.com",
+  "password": "user123"
+}
+
+### Test 12: Login Usuario 4 - Carlos Fernández
+# @name user4Login
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "carlos.fernandez@test.com",
+  "password": "user123"
+}
+
+### Test 13: Login Usuario 5 - Laura Sánchez
+# @name user5Login
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "laura.sanchez@test.com",
+  "password": "user123"
+}
+
+### Test 14: Login Usuario 6 - Pedro Jiménez
+# @name user6Login
+POST {{host}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "pedro.jimenez@test.com",
+  "password": "user123"
+}
+
+### =============================================================================
+### 5. VERIFICAR LIBROS EXISTENTES - Los libros ya están en books.json
+### =============================================================================
+### NOTA: Los libros ya están creados en data/json/books.json (20 libros)
+
+### Test 15: Listar todos los libros existentes (20 libros)
+GET {{host}}/api/v1/book/
+
+### Test 16: Buscar libro por título "Principito"
+GET {{host}}/api/v1/book/search/Principito
+
+### Test 17: Verificar libro específico - El Principito
+GET {{host}}/api/v1/book/9780156012195
+
+### Test 18: Verificar libro - 1984
+GET {{host}}/api/v1/book/9780451524935
+
+### Test 19: Verificar libro - Cien años de soledad
+GET {{host}}/api/v1/book/9788491050407
+
+### =============================================================================
+### 6. PRUEBAS DE LISTA DE ESPERA - Libro con alta demanda
+### =============================================================================
+
+### Test 20: Usuario 1 solicita préstamo de El Principito (ÉXITO - libro disponible)
+POST {{host}}/api/v1/loan/
+Content-Type: application/json
+
+{
+  "user": "maria.garcia@test.com",
+  "book": "9780156012195",
+  "loanDate": "2025-12-11T10:00:00"
+}
+
+### Guardar loan ID en @loanId1
+
+### Test 21: Verificar que el libro está prestado
+GET {{host}}/api/v1/book/9780156012195
+
+### Test 22: Usuario 2 intenta solicitar el mismo libro (debería entrar a lista de espera)
+POST {{host}}/api/v1/loan/
+Content-Type: application/json
+
+{
+  "user": "juan.perez@test.com",
+  "book": "9780156012195",
+  "loanDate": "2025-12-11T11:00:00"
+}
+
+### Test 23: Usuario 3 también solicita el libro (segunda posición en lista de espera)
+POST {{host}}/api/v1/loan/
+Content-Type: application/json
+
+{
+  "user": "ana.rodriguez@test.com",
+  "book": "9780156012195",
+  "loanDate": "2025-12-11T12:00:00"
+}
+
+### Test 24: Usuario 4 solicita el libro (tercera posición en lista de espera)
+POST {{host}}/api/v1/loan/
+Content-Type: application/json
+
+{
+  "user": "carlos.fernandez@test.com",
+  "book": "9780156012195",
+  "loanDate": "2025-12-11T13:00:00"
+}
+
+### Test 25: Usuario 5 solicita el libro (cuarta posición en lista de espera)
+POST {{host}}/api/v1/loan/
+Content-Type: application/json
+
+{
+  "user": "laura.sanchez@test.com",
+  "book": "9780156012195",
+  "loanDate": "2025-12-11T14:00:00"
+}
+
+### Test 26: Listar todos los préstamos activos
+GET {{host}}/api/v1/loan/
+
+### Test 27: Verificar la cola de reservas (reservation queue)
+### Debería mostrar 4 usuarios en espera por El Principito
+GET {{host}}/api/v1/loan/reservations/queue
+
+### Test 28: Usuario 1 devuelve el libro (debería asignarse automáticamente a Usuario 2)
+DELETE {{host}}/api/v1/loan/{{loanId1}}
+
+### Test 29: Verificar que la cola de reservas se redujo (ahora solo 3 usuarios)
+### Usuario 2 ya no debe estar en la cola porque recibió el libro automáticamente
+GET {{host}}/api/v1/loan/reservations/queue
+
+### Test 30: Verificar todos los préstamos activos (Usuario 2 debe tener El Principito)
+GET {{host}}/api/v1/loan/
+
+### Test 31: Verificar que el libro "El Principito" ahora está prestado a Usuario 2
+GET {{host}}/api/v1/book/9780156012195
+
+### =============================================================================
+### 7. PRÉSTAMOS MÚTIPLES SIMULTÁNEOS
+### =============================================================================
+
+### Test 32: Usuario 3 solicita libro "1984"
+POST {{host}}/api/v1/loan/
+Content-Type: application/json
+
+{
+  "user": "ana.rodriguez@test.com",
+  "book": "9780451524935",
+  "loanDate": "2025-12-11T15:00:00"
+}
+
+### Test 33: Usuario 4 solicita "Cien años de soledad"
+POST {{host}}/api/v1/loan/
+Content-Type: application/json
+
+{
+  "user": "carlos.fernandez@test.com",
+  "book": "9788491050407",
+  "loanDate": "2025-12-11T15:30:00"
+}
+
+### Test 34: Usuario 5 intenta solicitar "1984" (ya prestado, debe entrar a lista de espera)
+POST {{host}}/api/v1/loan/
+Content-Type: application/json
+
+{
+  "user": "laura.sanchez@test.com",
+  "book": "9780451524935",
+  "loanDate": "2025-12-11T16:00:00"
+}
+
+### Test 35: Listar todos los préstamos activos y en espera
+GET {{host}}/api/v1/loan/
+
+### =============================================================================
+### 8. GESTIÓN AVANZADA DE PRÉSTAMOS
+### =============================================================================
+
+### Test 36: Buscar préstamo por libro específico
+GET {{host}}/api/v1/loan/?book=9780156012195
+
+### Test 37: Buscar préstamos por usuario específico
+GET {{host}}/api/v1/loan/?user=maria.garcia@test.com
+
+### Test 38: Obtener préstamo específico por ID
+GET {{host}}/api/v1/loan/{{loanId1}}
+
+### Test 39: Intentar devolver un libro que no existe (debe fallar)
+DELETE {{host}}/api/v1/loan/99999999999999999
+
+### =============================================================================
+### 9. OPERACIONES DE BOOKCASE CON MÚLTIPLES LIBROS
+### =============================================================================
+
+### Test 40: Usuario 3 devuelve "1984" (debe asignarse a Usuario 5 en espera)
+DELETE {{host}}/api/v1/loan/{{loanId2}}
+
+### Test 41: Verificar estado del BookCase después de devoluciones
+GET {{host}}/api/v1/loan/bookcase/status
+
+### Test 42: Organizar bookcase manualmente
+POST {{host}}/api/v1/loan/bookcase/organize
+Authorization: Bearer {{adminToken}}
+
+### Test 43: Verificar organización del bookcase
+GET {{host}}/api/v1/loan/bookcase/status
+
+### =============================================================================
+### 10. PRUEBAS DE PERMISOS Y VALIDACIONES
+### =============================================================================
+
+### Test 44: Usuario normal intenta crear un libro (debe fallar)
+POST {{host}}/api/v1/book/
+Authorization: Bearer {{user1Token}}
+Content-Type: application/json
+
+{
+  "title": "Libro Prohibido",
+  "author": "Usuario Normal",
+  "id_IBSN": "9999999999999",
+  "gender": "Test",
+  "yearPublished": 2025,
+  "weight": 0.5,
+  "price": 10.0
+}
+
+### Test 45: Usuario normal intenta crear bookcase (debe fallar)
+POST {{host}}/api/v1/admin/bookcase
+Authorization: Bearer {{user1Token}}
+Content-Type: application/json
+
+{
+  "typeOrdering": "OPTIMOUM",
+  "weighCapacity": 15.0,
+  "capacityStands": 5
+}
+
+### Test 46: Intentar crear préstamo con usuario inexistente (debe fallar)
+POST {{host}}/api/v1/loan/
+Content-Type: application/json
+
+{
+  "user": "noexiste@test.com",
+  "book": "9780156012195",
+  "loanDate": "2025-12-11T20:00:00"
+}
+
+### Test 47: Intentar crear préstamo con libro inexistente (debe fallar)
+POST {{host}}/api/v1/loan/
+Content-Type: application/json
+
+{
+  "user": "maria.garcia@test.com",
+  "book": "9999999999999",
+  "loanDate": "2025-12-11T20:00:00"
+}
+
+### =============================================================================
+### 11. ACTUALIZACIÓN DE DATOS
+### =============================================================================
+
+### Test 48: Actualizar información de usuario
+PATCH {{host}}/api/v1/user/17654425996320001
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "fullName": "María García López - Actualizada"
+}
+
+### Test 49: Actualizar información de libro
+PATCH {{host}}/api/v1/book/9780156012195
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "price": 16.99,
+  "description": "Edición actualizada con ilustraciones"
+}
+
+### Test 50: Verificar actualización del libro
+GET {{host}}/api/v1/book/9780156012195
+
+### =============================================================================
+### 12. BÚSQUEDAS Y FILTROS
+### =============================================================================
+
+### Test 51: Buscar todos los libros de ficción
+GET {{host}}/api/v1/book/search/Ficción
+
+### Test 52: Buscar libros por autor
+GET {{host}}/api/v1/book/search/Orwell
+
+### Test 53: Obtener información completa de un usuario
+GET {{host}}/api/v1/user/
+
+### =============================================================================
+### 13. DEVOLUCIONES Y LIMPIEZA DE LISTA DE ESPERA
+### =============================================================================
+
+### Test 54: Usuario 2 devuelve El Principito (debe asignarse a Usuario 3)
+DELETE {{host}}/api/v1/loan/{{loanId2}}
+
+### Test 55: Verificar nueva asignación
+GET {{host}}/api/v1/loan/
+
+### Test 56: Usuario 4 devuelve su libro
+DELETE {{host}}/api/v1/loan/{{loanId3}}
+
+### Test 57: Estado final de todos los préstamos
+GET {{host}}/api/v1/loan/
+
+### =============================================================================
+### 14. RECONFIGURACIÓN DE BOOKCASE
+### =============================================================================
+
+### Test 58: Cambiar configuración a DEFICIENT
+POST {{host}}/api/v1/loan/bookcase/configure
+Content-Type: application/json
+
+{
+  "algorithm_type": "DEFICIENT",
+  "weight_capacity": 15.0,
+  "capacity_stands": 8
+}
+
+### Test 59: Verificar nueva configuración
+GET {{host}}/api/v1/loan/bookcase/status
+
+### Test 60: Organizar con nuevo algoritmo
+POST {{host}}/api/v1/loan/bookcase/organize
+Authorization: Bearer {{adminToken}}
+
+### =============================================================================
+### 15. RESUMEN FINAL Y ESTADÍSTICAS
+### =============================================================================
+
+### Test 61: Estado final - Todos los usuarios
+GET {{host}}/api/v1/user/
+
+### Test 62: Estado final - Todos los libros
+GET {{host}}/api/v1/book/
+
+### Test 63: Estado final - Todos los préstamos
+GET {{host}}/api/v1/loan/
+
+### Test 64: Estado final - BookCase
+GET {{host}}/api/v1/loan/bookcase/status
+
+### Test 65: Estado final - Admins
+GET {{host}}/api/v1/admin/
+Authorization: Bearer {{adminToken}}
+
+### Test 66: Verificar sesión del admin sigue activa
+GET {{host}}/api/v1/auth/me
+Authorization: Bearer {{adminToken}}
+
+### Test 67: Verificar sesión de usuario 1
+GET {{host}}/api/v1/auth/me
+Authorization: Bearer {{user1Token}}
+
+### =============================================================================
+### NOTAS IMPORTANTES PARA LISTA DE ESPERA
+### =============================================================================
+
+# FLUJO DE PRUEBA DE LISTA DE ESPERA:
+# 1. Usuario 1 solicita El Principito → ✓ Préstamo activo
+# 2. Usuario 2 solicita El Principito → ⏳ Lista de espera posición 1
+# 3. Usuario 3 solicita El Principito → ⏳ Lista de espera posición 2
+# 4. Usuario 4 solicita El Principito → ⏳ Lista de espera posición 3
+# 5. Usuario 5 solicita El Principito → ⏳ Lista de espera posición 4
+# 6. Usuario 1 devuelve → Usuario 2 recibe automáticamente el libro
+# 7. Usuario 2 devuelve → Usuario 3 recibe automáticamente el libro
+# 8. Y así sucesivamente...
+
+# DATOS IMPORTANTES:
+# - Usuarios ya están en users.json (6 usuarios, password: user123)
+# - Libros ya están en books.json (20 libros)
+# - Solo necesitas crear el admin y hacer login con los usuarios
+
+# TOKENS A COPIAR MANUALMENTE:
+# - @adminToken: Del Test 03 (Login admin)
+# - @user1Token: Del Test 09 (Login María)
+# - @user2Token: Del Test 10 (Login Juan)
+# - @user3Token: Del Test 11 (Login Ana)
+# - @user4Token: Del Test 12 (Login Carlos)
+# - @user5Token: Del Test 13 (Login Laura)
+# - @user6Token: Del Test 14 (Login Pedro)
+# - @loanId1: Del Test 20 (Primer préstamo)
+# - @loanId2: Del Test 31 o actualización automática
+# - @loanId3: Del Test 32
+
+# RESULTADOS ESPERADOS:
+# - Tests 43-46: Deben fallar (validaciones y permisos)
+# - Test 22-25: Pueden devolver información de lista de espera
+# - Tests de devolución: Deben reasignar automáticamente a siguiente usuario
+# - Todos los demás: Deben pasar (200/201)
+
+### =============================================================================
+### 16. TESTS DETALLADOS DEL ALGORITMO DEFICIENT
+### =============================================================================
+### Estos tests verifican el funcionamiento completo del algoritmo DEFICIENT
+### incluyendo la organización de estantes y detección de combinaciones peligrosas
+
+### Test 68: Configurar BookCase con algoritmo DEFICIENT y baja capacidad (1kg)
+POST {{host}}/api/v1/loan/bookcase/configure
+Content-Type: application/json
+
+{
+  "algorithm_type": "DEFICIENT",
+  "weight_capacity": 1.0,
+  "capacity_stands": 20
+}
+
+### Test 69: Ejecutar organización con DEFICIENT (requiere admin)
+# Este test organizará los libros en estantes y detectará combinaciones peligrosas
+# Respuesta esperada: estantes creados con múltiples libros y lista de combinaciones peligrosas
+POST {{host}}/api/v1/loan/bookcase/organize
+Authorization: Bearer {{adminToken}}
+
+### Test 70: Verificar estantes creados por DEFICIENT
+# Debe mostrar:
+# - Lista de estantes (shelves) con sus libros
+# - Combinaciones peligrosas detectadas
+# - Estadísticas de organización
+GET {{host}}/api/v1/loan/bookcase/status
+
+### Test 71: Reconfigurar con capacidad de 5kg para diferentes combinaciones
+POST {{host}}/api/v1/loan/bookcase/configure
+Content-Type: application/json
+
+{
+  "algorithm_type": "DEFICIENT",
+  "weight_capacity": 5.0,
+  "capacity_stands": 15
+}
+
+### Test 72: Reorganizar con nueva capacidad
+POST {{host}}/api/v1/loan/bookcase/organize
+Authorization: Bearer {{adminToken}}
+
+### Test 73: Verificar nueva organización (menos estantes, más libros por estante)
+GET {{host}}/api/v1/loan/bookcase/status
+
+### Test 74: Cambiar a algoritmo OPTIMOUM para comparación
+POST {{host}}/api/v1/loan/bookcase/configure
+Content-Type: application/json
+
+{
+  "algorithm_type": "OPTIMOUM",
+  "weight_capacity": 10.0,
+  "capacity_stands": 10
+}
+
+### Test 75: Ejecutar OPTIMOUM
+POST {{host}}/api/v1/loan/bookcase/organize
+Authorization: Bearer {{adminToken}}
+
+### Test 76: Comparar resultado OPTIMOUM vs DEFICIENT
+GET {{host}}/api/v1/loan/bookcase/status
+
+### =============================================================================
+### FIN DEL TEST DE INTEGRACIÓN COMPLETO
+### =============================================================================

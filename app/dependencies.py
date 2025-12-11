@@ -25,13 +25,13 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido")
     
     # Buscar en usuarios normales
-    users = user_service.get_users_all()
+    users = user_service.get_users_all() or []
     for u in users:
         if u.get_email() == username:
             return u
     
     # Buscar en admins si no lo encontró en usuarios
-    admins = admin_service.get_users_all()
+    admins = admin_service.get_users_all() or []
     for a in admins:
         if a.get_email() == username:
             return a
@@ -48,7 +48,7 @@ def get_current_admin(token: str = Depends(oauth2_scheme)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido")
     
     # Buscar SOLO en admins
-    admins = admin_service.get_users_all()
+    admins = admin_service.get_users_all() or []
     for admin in admins:
         if admin.get_email() == username:
             return admin

@@ -151,9 +151,14 @@ class BookAPIService:
             HTTPException: 404 si no se encuentra el libro, 500 en errores internos.
         """
         try:
-            result = self.__inventary_service.update_book(id_IBSN)
+            result = self.__inventary_service.delete_book(id_IBSN)
             if not result:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found for deletion")
             return result
+        except HTTPException:
+            raise
         except Exception as e:
+            print(f"Error deleting book: {e}")
+            import traceback
+            traceback.print_exc()
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error deleting book")
