@@ -164,10 +164,63 @@ class LoanAPIService:
         elif algorithm_type == TypeOrdering.OPTIMOUM:
             from app.domain.algorithms.organizer_optimum import estanteria_optima
             
-            libros_dict = [{"peso": book.get_weight(), "valor": 1} for book in books]
-            mejor_valor, mejor_solucion = estanteria_optima(libros_dict, weight_capacity)
-            result["optimal_value"] = mejor_valor
-            print(f"✓ Libros organizados usando algoritmo OPTIMOUM. Valor óptimo: {mejor_valor}")
+            # Ejecutar algoritmo OPTIMOUM
+            mejor_solucion = estanteria_optima(books, weight_capacity)
+            
+            # Crear estantes basados en la solución óptima
+            all_bookshelves = []
+            shelf_number = 0
+            
+            # mejor_solucion contiene listas de decisiones (0 o 1) para cada combinación
+            # Tomar la última solución (la mejor)
+            if mejor_solucion:
+                best_solution = mejor_solucion[-1]  # Última solución es la mejor
+                
+                # Crear un estante con los libros seleccionados
+                selected_books = []
+                total_weight = 0.0
+                for i, decision in enumerate(best_solution):
+                    if decision == 1:
+                        selected_books.append(books[i])
+                        total_weight += books[i].get_weight()
+                
+                if selected_books:
+                    shelf_number += 1
+                    bookshelf = BookShelf(books=selected_books)
+                    bookshelf.set_id(f"SHELF-OPT-{shelf_number:03d}")
+                    all_bookshelves.append(bookshelf)
+                    print(f"   Estante {shelf_number}: {len(selected_books)} libro(s), {total_weight:.2f}/{weight_capacity} kg")
+            
+            # Crear el BookCase con los estantes generados
+            bookcase_result = BookCase(
+                stands=all_bookshelves,
+                TypeOrdering=TypeOrdering.OPTIMOUM,
+                weighCapacity=weight_capacity,
+                capacityStands=len(all_bookshelves),
+                store=books
+            )
+            
+            # Actualizar el bookcase
+            self.__bookcase = bookcase_result
+            self.__loan_service.set_bookcase(bookcase_result)
+            
+            result["shelves_created"] = len(all_bookshelves)
+            result["total_books_in_shelves"] = sum(len(shelf.get_books()) for shelf in all_bookshelves)
+            
+            # Agregar detalles de los estantes
+            shelves_info = []
+            for shelf in all_bookshelves:
+                shelf_info = {
+                    "id": shelf.get_id(),
+                    "books_count": len(shelf.get_books()),
+                    "total_weight": shelf.get_current_weight(),
+                    "books": [{"title": book.get_title(), "weight": book.get_weight()} for book in shelf.get_books()]
+                }
+                shelves_info.append(shelf_info)
+            
+            result["shelves"] = shelves_info
+            
+            print(f"✓ Libros organizados usando algoritmo OPTIMOUM.")
         
         return result
     

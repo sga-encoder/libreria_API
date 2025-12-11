@@ -8,7 +8,7 @@ def estanteria_optima(libros, capacidad_max):
     profundidad = len(libros)   # una decisión por libro
 
     mejor_valor = 0
-    mejor_solucion = None
+    mejor_solucion = []
 
     def backtrack(solucion, peso_actual, valor_actual, index):
         nonlocal mejor_valor, mejor_solucion
@@ -17,7 +17,7 @@ def estanteria_optima(libros, capacidad_max):
         if index == profundidad:
             if valor_actual > mejor_valor:
                 mejor_valor = valor_actual
-                mejor_solucion = solucion[:]
+                mejor_solucion.append(solucion[:])
             return
 
         # 2. Recorrer opciones: incluir o no incluir libro
@@ -26,14 +26,14 @@ def estanteria_optima(libros, capacidad_max):
 
             if opcion == 1:
                 # Intentar incluir el libro
-                nuevo_peso = peso_actual + libro["peso"]
+                nuevo_peso = peso_actual + libro.get_weight()
 
                 # Poda por capacidad
                 if nuevo_peso > capacidad_max:
                     continue
 
                 solucion.append(1)
-                backtrack(solucion, nuevo_peso, valor_actual + libro["valor"], index + 1)
+                backtrack(solucion, nuevo_peso, valor_actual + libro.get_price(), index + 1)
                 solucion.pop()
 
             else:
@@ -45,4 +45,4 @@ def estanteria_optima(libros, capacidad_max):
     # Llamada inicial
     backtrack([], 0.0, 0, 0)
 
-    return mejor_valor, mejor_solucion
+    return mejor_solucion

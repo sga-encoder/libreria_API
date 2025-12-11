@@ -31,6 +31,8 @@ class Person:
     _email: str
     _password: str
     _role: PersonRole
+    _historial: list
+    
 
     def __init__(self, fullName: str, email: str, password: str, role: PersonRole, id: str = None, password_is_hashed: bool = False):
         """Inicializa una nueva instancia de Person.
@@ -213,6 +215,16 @@ class Person:
             self._role = PersonRole.USER
         else:
             self._role = role
+            
+    def add_historial(self, item: str):
+        """Agrega un ítem al historial de la persona.
+
+        Args:
+            item (str): El ítem a agregar al historial.
+        """
+        if not hasattr(self, '_historial'):
+            self._historial = []
+        self._historial.append(item)
 
     def verify_password(self, password: str) -> bool:
         """Verifica si la contraseña coincide con el hash almacenado.
@@ -252,6 +264,7 @@ class Person:
             "email": self._email,
             "password": self._password,
             "role": self._role.name,
+            "historial": getattr(self, '_historial', []),
         }
         
     def update_from_dict(self, data: dict):
@@ -275,6 +288,8 @@ class Person:
                 raise ValueError("necesitas la contraseña anterior para actualizar la contraseña")
         if "role" in data:
             self.__set_role(PersonRole[data["role"]])
+        if "historial" in data:
+            self._historial = data["historial"]
 
     def __str__(self):
         """Representación en cadena legible para humanos.

@@ -1,0 +1,22 @@
+id_IBSN,title,author,gender,weight,price,description,frond_page_url,is_borrowed
+9780544003415,El Señor de los Anillos,J.R.R. Tolkien,Fantasía,1.2,45.0,La épica trilogía completa en un solo volumen,,False
+9788499892085,Los pilares de la Tierra,Ken Follett,Histórica,0.9,32.0,Una épica historia sobre la construcción de una catedral en el siglo XII,,False
+9788478887590,Don Quijote de la Mancha,Miguel de Cervantes,Clásico,0.8,28.5,La obra cumbre de la literatura española,,False
+9788466331579,La catedral del mar,Ildefonso Falcones,Histórica,0.7,27.0,La historia de un siervo en la Barcelona medieval,,False
+9788445077528,El nombre de la rosa,Umberto Eco,Misterio,0.7,26.0,Misterio medieval en una abadía benedictina,,False
+9788408043638,El médico,Noah Gordon,Histórica,0.65,25.5,Las aventuras de un médico inglés en Persia medieval,,False
+9788491050407,Cien años de soledad,Gabriel García Márquez,Ficción,0.6,24.99,La obra maestra del realismo mágico sobre la familia Buendía,,False
+9788490628775,El tiempo entre costuras,María Dueñas,Histórica,0.65,24.5,Una modista española en Marruecos durante la Segunda Guerra Mundial,,False
+9788420656663,La sombra del viento,Carlos Ruiz Zafón,Misterio,0.6,24.0,Un joven descubre un libro que cambiará su vida en la Barcelona de posguerra,,False
+9788420412146,Rayuela,Julio Cortázar,Ficción,0.55,23.5,Una novela experimental que puede leerse en múltiples órdenes,,False
+9780061120084,Matar un ruiseñor,Harper Lee,Ficción,0.5,22.0,Una historia sobre la injusticia racial en el sur de Estados Unidos,,False
+9780547928227,El Hobbit,J.R.R. Tolkien,Fantasía,0.45,21.0,Las aventuras de Bilbo Bolsón en la Tierra Media,,False
+9780307474278,El código Da Vinci,Dan Brown,Thriller,0.5,20.0,Un thriller sobre conspiraciones religiosas,,False
+9780316769174,El guardián entre el centeno,J.D. Salinger,Ficción,0.4,19.99,La historia de Holden Caulfield y su búsqueda de identidad,,False
+9780141439518,Orgullo y prejuicio,Jane Austen,Romance,0.45,19.5,La historia de Elizabeth Bennet y el señor Darcy,,False
+9780451524935,1984,George Orwell,Distopía,0.4,18.5,Una novela distópica sobre un futuro totalitario,,False
+9788437604947,La Celestina,Fernando de Rojas,Clásico,0.4,18.0,Tragicomedia de Calisto y Melibea,,False
+9780743273565,El Gran Gatsby,F. Scott Fitzgerald,Ficción,0.35,17.5,Una crítica a la sociedad estadounidense de los años 20,,False
+9780062315007,Alicia en el país de las maravillas,Lewis Carroll,Fantasía,0.3,16.5,Las fantásticas aventuras de Alicia en un mundo surrealista,,False
+9780156012195,El Principito,Antoine de Saint-Exupéry,Ficción,0.3,15.99,Un clásico de la literatura francesa sobre un pequeño príncipe que viaja por el universo,,True
+TOTAL,,,,,469.97,,,

@@ -5,10 +5,11 @@ Proporciona la clase InventoryService que maneja la carga, lectura,
 creación, actualización y eliminación de libros usando BooksRepository.
 Mantiene tanto la estructura de pila (inventario) como una lista ordenada.
  """
+from typing import List, Dict, Any, Optional
 from app.domain.repositories import BooksRepository
 from app.domain.structures import Stack
 from app.domain.models import Book
-from app.domain.algorithms import insertion_sort
+from app.domain.algorithms import insertion_sort, TotalValue, generate_global_report, generate_and_save, get_average_weight_by_author
 
 class InventoryService:
     """
@@ -175,5 +176,140 @@ class InventoryService:
         except Exception as e:
             print(f"Error deleting book: {e}")
             return False
+    
+    def get_total_value_by_author(self, author: str) -> float:
+        """
+        Calcula el valor total de todos los libros de un autor específico.
+        
+        Utiliza el algoritmo TotalValue (recursivo con Stack) para procesar
+        todos los libros del inventario y sumar el precio de aquellos que
+        pertenecen al autor especificado.
+        
+        Args:
+            author (str): Nombre del autor cuyos libros se quieren valorar.
+        
+        Returns:
+            float: Valor total de todos los libros del autor.
+                   Retorna 0.0 si no hay libros del autor o si el inventario está vacío.
+        
+        Ejemplos:
+            >>> total = service.get_total_value_by_author("Gabriel García Márquez")
+            >>> print(f"Valor total: ${total:.2f}")
+        """
+        try:
+            # Obtener todos los libros del inventario como lista
+            books = self.__inventary.to_list()
+            
+            if not books:
+                return 0.0
+            
+            # Usar el algoritmo TotalValue para calcular el valor total
+            total_value = TotalValue(books, author)
+            
+            return total_value
+        except Exception as e:
+            print(f"Error calculating total value by author: {e}")
+            return 0.0
+    
+    def generate_global_report(
+        self,
+        file_path: Optional[str] = None,
+        format: str = "json",
+        value_key: str = "price",
+        descending: bool = True
+    ) -> List[Dict[str, Any]]:
+        """Genera un reporte global de todos los libros ordenados por valor.
+        
+        Obtiene todos los libros del inventario, los convierte a diccionarios,
+        y genera un reporte ordenado por el campo de valor especificado.
+        Opcionalmente guarda el reporte en formato CSV o JSON.
+        
+        Args:
+            file_path: Ruta donde guardar el reporte (opcional). Si es None, solo retorna el reporte.
+            format: Formato del archivo ('csv' o 'json'). Default: 'json'.
+            value_key: Campo por el cual ordenar (debe existir en los diccionarios de libros). Default: 'price'.
+            descending: Si es True ordena de mayor a menor, si es False de menor a mayor. Default: True.
+        
+        Returns:
+            Lista de diccionarios con los libros ordenados por valor.
+            Cada diccionario contiene todos los campos del libro.
+        
+        Ejemplos:
+            >>> # Solo obtener el reporte ordenado
+            >>> report = service.generate_global_report()
+            >>> 
+            >>> # Guardar en JSON
+            >>> report = service.generate_global_report(file_path="./reports/inventory.json", format="json")
+            >>> 
+            >>> # Guardar en CSV con total
+            >>> report = service.generate_global_report(file_path="./reports/inventory.csv", format="csv")
+        """
+        try:
+            # Obtener todos los libros del inventario
+            books = self.__inventary.to_list()
+            
+            # Convertir libros a diccionarios
+            books_dicts = [book.to_dict() for book in books]
+            
+            # Generar el reporte usando la función de algoritmos
+            report = generate_and_save(
+                books=books_dicts,
+                file_path=file_path,
+                format=format,
+                value_key=value_key,
+                descending=descending
+            )
+            
+            return report
+        except Exception as e:
+            print(f"Error generating global report: {e}")
+            return []
+    
+    def get_average_weight_by_author(self, author: str) -> Dict[str, Any]:
+        """Calcula el peso promedio de los libros de un autor usando recursión de cola.
+        
+        Utiliza un algoritmo de tail recursion para procesar todos los libros del
+        inventario y calcular el peso promedio de aquellos que pertenecen al autor
+        especificado. La función muestra en consola cada paso de la recursión para
+        fines educativos.
+        
+        Args:
+            author: Nombre del autor cuyos libros se quieren analizar.
+        
+        Returns:
+            Diccionario con:
+            - author: nombre del autor
+            - average_weight: peso promedio de sus libros en kg
+            - total_books: cantidad de libros del autor
+            - books: lista de libros con título, ISBN y peso
+        
+        Ejemplos:
+            >>> result = service.get_average_weight_by_author("Gabriel García Márquez")
+            >>> print(f"Peso promedio: {result['average_weight']} kg")
+        """
+        try:
+            # Obtener todos los libros del inventario
+            books = self.__inventary.to_list()
+            
+            if not books:
+                return {
+                    "author": author,
+                    "average_weight": 0.0,
+                    "total_books": 0,
+                    "books": []
+                }
+            
+            # Usar el algoritmo de recursión de cola
+            result = get_average_weight_by_author(books, author)
+            
+            return result
+        except Exception as e:
+            print(f"Error calculating average weight by author: {e}")
+            return {
+                "author": author,
+                "average_weight": 0.0,
+                "total_books": 0,
+                "books": []
+            }
 
 

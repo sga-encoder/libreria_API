@@ -162,3 +162,156 @@ class BookAPIService:
             import traceback
             traceback.print_exc()
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error deleting book")
+    
+    def get_total_value_by_author(self, author: str) -> dict:
+        """Calcula el valor total de todos los libros de un autor específico.
+        
+        Utiliza el algoritmo TotalValue (recursivo con Stack) para procesar
+        todos los libros del inventario y calcular el valor total de aquellos
+        que pertenecen al autor especificado.
+        
+        Args:
+            author (str): Nombre del autor cuyos libros se quieren valorar.
+        
+        Returns:
+            dict: Diccionario con el autor, valor total y número de libros encontrados.
+                  Formato: {
+                      "author": str,
+                      "total_value": float,
+                      "books_count": int,
+                      "books": list[dict]
+                  }
+        
+        Raises:
+            HTTPException: 500 en errores internos.
+        """
+        try:
+            # Obtener el valor total usando el servicio de inventario
+            total_value = self.__inventary_service.get_total_value_by_author(author)
+            
+            # Obtener los libros del autor para información adicional
+            all_books = self.__inventary_service.get_inventary().to_list()
+            author_books = [book for book in all_books if book.get_author() == author]
+            
+            return {
+                "author": author,
+                "total_value": round(total_value, 2),
+                "books_count": len(author_books),
+                "books": [
+                    {
+                        "title": book.get_title(),
+                        "isbn": book.get_id_IBSN(),
+                        "price": book.get_price()
+                    }
+                    for book in author_books
+                ]
+            }
+        except Exception as e:
+            print(f"Error calculating total value by author: {e}")
+            import traceback
+            traceback.print_exc()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error calculating total value for author: {author}"
+            )
+    
+    def generate_global_report(
+        self,
+        file_path: str = None,
+        format: str = "json",
+        value_key: str = "price",
+        descending: bool = True
+    ) -> dict:
+        """Genera un reporte global de todos los libros ordenados por valor.
+        
+        Obtiene todos los libros del inventario, los ordena por el campo de valor especificado,
+        y opcionalmente guarda el reporte en formato CSV o JSON.
+        
+        Args:
+            file_path: Ruta donde guardar el reporte (opcional). Si no se proporciona, solo retorna el reporte.
+            format: Formato del archivo ('csv' o 'json'). Default: 'json'.
+            value_key: Campo por el cual ordenar. Default: 'price'.
+            descending: Si es True ordena de mayor a menor. Default: True.
+        
+        Returns:
+            dict: Diccionario con:
+                - books: lista de libros ordenados
+                - total_books: cantidad total de libros
+                - total_value: suma total de valores
+                - file_saved: ruta del archivo guardado (si aplica)
+                - format: formato utilizado
+        
+        Raises:
+            HTTPException: 500 en errores internos.
+        """
+        try:
+            # Generar el reporte usando el servicio de inventario
+            report = self.__inventary_service.generate_global_report(
+                file_path=file_path,
+                format=format,
+                value_key=value_key,
+                descending=descending
+            )
+            
+            # Calcular el total de valores
+            total_value = sum(
+                float(book.get(value_key, 0)) 
+                for book in report
+            )
+            
+            result = {
+                "books": report,
+                "total_books": len(report),
+                "total_value": round(total_value, 2),
+                "format": format
+            }
+            
+            if file_path:
+                result["file_saved"] = file_path
+            
+            return result
+            
+        except Exception as e:
+            print(f"Error generating global report: {e}")
+            import traceback
+            traceback.print_exc()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error generating global report: {str(e)}"
+            )
+    
+    def get_average_weight_by_author(self, author: str) -> dict:
+        """Calcula el peso promedio de los libros de un autor usando recursión de cola.
+        
+        Utiliza un algoritmo de tail recursion para procesar todos los libros y
+        calcular el peso promedio de aquellos que pertenecen al autor especificado.
+        El algoritmo muestra en consola cada paso de la recursión para demostrar
+        el funcionamiento de la recursión de cola.
+        
+        Args:
+            author: Nombre del autor cuyos libros se quieren analizar.
+        
+        Returns:
+            dict: Diccionario con:
+                - author: nombre del autor
+                - average_weight: peso promedio en kg
+                - total_books: cantidad de libros
+                - books: lista de libros con detalles
+        
+        Raises:
+            HTTPException: 500 en errores internos.
+        """
+        try:
+            # Calcular usando el servicio de inventario
+            result = self.__inventary_service.get_average_weight_by_author(author)
+            
+            return result
+            
+        except Exception as e:
+            print(f"Error calculating average weight by author: {e}")
+            import traceback
+            traceback.print_exc()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Error calculating average weight for author: {author}"
+            )

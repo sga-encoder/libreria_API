@@ -316,9 +316,12 @@ class LoanService:
                     
                     # Actualizar lista de préstamos del usuario (guardar solo el ID)
                     try:
-                        reserved_user.add_loan(loan.get_id())
-                        # Persistir el cambio en el usuario
-                        self.__user_service.update_user(reserved_user.get_id(), {"loans": reserved_user.get_loans()})
+                        reserved_user.add_loan(loan)  # Pasar objeto completo
+                        # Persistir el cambio en el usuario (incluyendo loans e historial)
+                        self.__user_service.update_user(reserved_user.get_id(), {
+                            "loans": reserved_user.get_loans(),
+                            "historial": reserved_user.get_historial()
+                        })
                     except Exception as e:
                         print(f"Error añadiendo préstamo a usuario: {e}")
                     
@@ -397,11 +400,14 @@ class LoanService:
             print(f"Error persistiendo préstamo: {e}")
             return None
         
-        # Actualizar lista de préstamos del usuario (guardar solo el ID)
+        # Actualizar lista de préstamos del usuario (pasar objeto completo para historial)
         try:
-            user.add_loan(loan.get_id())
-            # Persistir el cambio en el usuario
-            self.__user_service.update_user(user.get_id(), {"loans": user.get_loans()})
+            user.add_loan(loan)  # Pasar el objeto completo para que se guarde en historial
+            # Persistir el cambio en el usuario (incluyendo loans e historial)
+            self.__user_service.update_user(user.get_id(), {
+                "loans": user.get_loans(),
+                "historial": user.get_historial()
+            })
         except Exception as e:
             print(f"Error añadiendo préstamo a usuario: {e}")
         
@@ -455,12 +461,14 @@ class LoanService:
         
         Proceso:
         1. Busca el préstamo por ID.
-        2. Libera el libro anterior (lo marca disponible y lo reinserta al inventario).
-        3. Aplica algoritmo de ordenamiento al agregar el libro antiguo.
-        4. Si el nuevo libro está disponible, crea un nuevo préstamo.
-        5. Procesa la cola de reservas para el libro anterior.
-        6. Aplica algoritmo de ordenamiento al remover el nuevo libro.
-        7. Elimina el préstamo antiguo de los registros.
+        2. Registra el préstamo antiguo en el historial del usuario.
+        3. Libera el libro anterior (lo marca disponible y lo reinserta al inventario).
+        4. Aplica algoritmo de ordenamiento al agregar el libro antiguo.
+        5. Si el nuevo libro está disponible, crea un nuevo préstamo.
+        6. Procesa la cola de reservas para el libro anterior.
+        7. Aplica algoritmo de ordenamiento al remover el nuevo libro.
+        8. Elimina el préstamo antiguo de los registros.
+        9. El historial ahora contiene el préstamo antiguo Y el nuevo.
         
         Args:
             id (str): ID del préstamo a actualizar.
@@ -482,6 +490,13 @@ class LoanService:
         if new_book is None:
             print("No se proporcionó nuevo libro para la actualización. Operación abortada.")
             return None
+        
+        # IMPORTANTE: Agregar el préstamo ANTIGUO COMPLETO al historial ANTES de hacer cualquier cambio
+        # Esto preserva toda la información del préstamo que se va a reemplazar
+        try:
+            user.add_to_historial(loan_to_update)
+        except Exception as e:
+            print(f"Error añadiendo préstamo antiguo al historial: {e}")
         
         # Liberar el libro anterior
         self.__add_book_back_to_inventory(old_book)
@@ -525,9 +540,15 @@ class LoanService:
             print(f"Error persistiendo nuevo préstamo: {e}")
             return None
         
-        # Actualizar lista de préstamos del usuario
+        # Actualizar lista de préstamos del usuario y agregar nuevo préstamo al historial
         try:
-            user.add_loan(new_loan)
+            user.add_loan(new_loan)  # Pasar objeto completo - Esto añade el nuevo préstamo a loans Y al historial
+            # Persistir el cambio en el usuario (incluyendo loans e historial)
+            # El historial ahora tiene: préstamo antiguo + préstamo nuevo
+            self.__user_service.update_user(user.get_id(), {
+                "loans": user.get_loans(),
+                "historial": user.get_historial()
+            })
         except Exception as e:
             print(f"Error añadiendo nuevo préstamo a usuario: {e}")
         
@@ -537,6 +558,27 @@ class LoanService:
         except Exception as e:
             print(f"Error añadiendo nuevo préstamo a registros: {e}")
         
+        # Eliminar el préstamo antiguo de los registros
+        if new_loan is not None:
+            try:
+                self.__loans_repository.delete(id)
+            except Exception as e:
+                print(f"Error eliminando préstamo antiguo del repositorio: {e}")
+            
+            # Eliminar de la lista local
+            try:
+                if loan_to_update in self.__loans_records:
+                    self.__loans_records.remove(loan_to_update)
+            except Exception as e:
+                print(f"Error eliminando préstamo antiguo de la lista local: {e}")
+            
+            try:
+                # Eliminar del usuario (solo de loans activos, NO del historial)
+                user.remove_loan(loan_to_update)
+            except Exception as e:
+                print(f"Error eliminando préstamo antiguo del usuario: {e}")
+        
+        return new_loan
         # Eliminar el préstamo antiguo de los registros
         if new_loan is not None:
             try:
@@ -564,12 +606,13 @@ class LoanService:
         
         Proceso:
         1. Busca el préstamo por ID.
-        2. Marca el libro como disponible.
-        3. Reintegra el libro al inventario (stack y lista ordenada).
-        4. Aplica algoritmo de ordenamiento al agregar el libro.
-        5. Procesa la cola de reservas para ese libro.
-        6. Elimina el préstamo de los registros globales y locales.
-        7. Elimina el préstamo de la lista de préstamos del usuario.
+        2. Registra el préstamo en el historial del usuario antes de eliminarlo.
+        3. Marca el libro como disponible.
+        4. Reintegra el libro al inventario (stack y lista ordenada).
+        5. Aplica algoritmo de ordenamiento al agregar el libro.
+        6. Procesa la cola de reservas para ese libro.
+        7. Elimina el préstamo de los registros globales y locales.
+        8. Elimina el préstamo de la lista de préstamos activos del usuario.
         
         Args:
             id (str): ID del préstamo a eliminar.
@@ -585,6 +628,13 @@ class LoanService:
         
         book = loan_to_delete.get_book()
         user = loan_to_delete.get_user()
+        
+        # IMPORTANTE: Agregar el préstamo COMPLETO al historial ANTES de eliminarlo
+        # Esto preserva toda la información del préstamo (usuario, libro, fecha)
+        try:
+            user.add_to_historial(loan_to_delete)
+        except Exception as e:
+            print(f"Error añadiendo préstamo al historial: {e}")
         
         # Eliminar del repositorio primero
         try:
@@ -602,14 +652,17 @@ class LoanService:
         except Exception as e:
             print(f"Error eliminando préstamo de la lista local: {e}")
         
-        # Eliminar de la lista de préstamos del usuario
+        # Eliminar de la lista de préstamos activos del usuario (NO del historial)
         try:
             user.remove_loan(loan_to_delete)
         except Exception as e:
             print(f"Error eliminando préstamo del usuario: {e}")
         
-        # Persistir cambios del usuario (lista de préstamos actualizada)
-        self.__user_service.update_user(user.get_id(), {"loans": user.get_loans()})
+        # Persistir cambios del usuario (lista de préstamos Y historial actualizado)
+        self.__user_service.update_user(user.get_id(), {
+            "loans": user.get_loans(),
+            "historial": user.get_historial()
+        })
         
         # Reintegrar el libro al inventario (marca is_borrowed = False)
         self.__add_book_back_to_inventory(book)

@@ -10,15 +10,15 @@
 ### =============================================================================
 
 @host = http://localhost:8000
-@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBiaWJsaW90ZWNhLnRlc3QiLCJyb2xlIjoiVVNFUiIsImV4cCI6MTc2NTQ0ODk4M30.u9TfcY4__-1PXlF89KKVU_0WnDZueT9N1AQUvj3dygU
-@user1Token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtYXJpYS5nYXJjaWFAdGVzdC5jb20iLCJyb2xlIjoiVVNFUiIsImV4cCI6MTc2NTQ0OTAyOH0.ZW7Y4uje6PKMkDxxYppBkAAmtrWjRh9K-rRbt5jvfFs
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZG1pbkBiaWJsaW90ZWNhLnRlc3QiLCJyb2xlIjoiVVNFUiIsImV4cCI6MTc2NTQ2NzE2MH0.fjItTQTOsB5INalA12SC1YG8fd8Xt3DX7omLQmmUGNA
+
 @user2Token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJqdWFuLnBlcmV6QHRlc3QuY29tIiwicm9sZSI6IlVTRVIiLCJleHAiOjE3NjU0NDkwNjd9.MjeyP25h5pMUH5KKO52yP2lUV5kLmnRSzLWjdicEUgU
 @user3Token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhbmEucm9kcmlndWV6QHRlc3QuY29tIiwicm9sZSI6IlVTRVIiLCJleHAiOjE3NjU0NDkxMDJ9.uNrA22Te2fgmiI5o9kErukL2JMuVpOGj9fWupuNlKeA
 @user4Token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjYXJsb3MuZmVybmFuZGV6QHRlc3QuY29tIiwicm9sZSI6IlVTRVIiLCJleHAiOjE3NjU0NDkxMzh9.YGQqhWr8_PmH19EhKg1vVomL9MoIPCIaAPCJPR7GUFo
 @user5Token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJsYXVyYS5zYW5jaGV6QHRlc3QuY29tIiwicm9sZSI6IlVTRVIiLCJleHAiOjE3NjU0NDkxNjl9.GRe7QOApOYFitacl45MP7K3HarjsyL2V0w2j_0uFbRI
 @user6Token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZWRyby5qaW1lbmV6QHRlc3QuY29tIiwicm9sZSI6IlVTRVIiLCJleHAiOjE3NjU0NDkxOTJ9.25PechH3zq5khjOphDkefmhzNx3zEVaRbpK-KUkmBBs
 @popularBookISBN = 9780156012195
-@loanId1 = 17654456428060002
+@loanId1 = 17654591716730002
 @loanId2 = 
 @loanId3 = 
 
@@ -90,6 +90,8 @@ GET {{host}}/api/v1/loan/bookcase/status
 ### Test 08: Listar todos los usuarios existentes
 GET {{host}}/api/v1/user/
 
+
+@user1Token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJtYXJpYS5nYXJjaWFAdGVzdC5jb20iLCJyb2xlIjoiVVNFUiIsImV4cCI6MTc2NTQ2MjY5OH0.2P0b-ENNk1VlXGyFFeil0VADegPWRofv5pUD33-uJCU
 ### Test 09: Login Usuario 1 - María García
 # @name user1Login
 POST {{host}}/api/v1/auth/login
@@ -187,7 +189,7 @@ Content-Type: application/json
 ### Guardar loan ID en @loanId1
 
 ### Test 21: Verificar que el libro está prestado
-GET {{host}}/api/v1/book/9780156012195
+GET {{host}}/api/v1/book/9780307474278
 
 ### Test 22: Usuario 2 intenta solicitar el mismo libro (debería entrar a lista de espera)
 POST {{host}}/api/v1/loan/
@@ -562,7 +564,7 @@ Content-Type: application/json
 
 {
   "algorithm_type": "OPTIMOUM",
-  "weight_capacity": 10.0,
+  "weight_capacity": 8.0,
   "capacity_stands": 10
 }
 
@@ -576,3 +578,331 @@ GET {{host}}/api/v1/loan/bookcase/status
 ### =============================================================================
 ### FIN DEL TEST DE INTEGRACIÓN COMPLETO
 ### =============================================================================
+
+### =============================================================================
+### 17. TESTS DEL ALGORITMO TOTALVALUE - Cálculo de valor total por autor
+### =============================================================================
+### Estos tests verifican el funcionamiento del algoritmo TotalValue que usa
+### recursión y Stack para calcular el valor total de libros de un autor
+
+### Test 77: Calcular valor total de libros de J.R.R. Tolkien (tiene 2 libros)
+# Respuesta esperada: suma del precio de "El Señor de los Anillos" y "El Hobbit"
+GET {{host}}/api/v1/book/author/J.R.R. Tolkien/total-value
+
+### Test 78: Calcular valor total de libros de George Orwell (tiene 1 libro)
+# Respuesta esperada: precio de "1984" (18.50)
+GET {{host}}/api/v1/book/author/George Orwell/total-value
+
+### Test 79: Calcular valor total de libros de Gabriel García Márquez (tiene 1 libro)
+# Respuesta esperada: precio de "Cien años de soledad"
+GET {{host}}/api/v1/book/author/Gabriel García Márquez/total-value
+
+### Test 80: Calcular valor total de libros de un autor con muchos libros
+# En este caso probamos con autores que tienen múltiples libros
+GET {{host}}/api/v1/book/author/Miguel de Cervantes/total-value
+
+### Test 81: Calcular valor total de un autor inexistente
+# Respuesta esperada: total_value: 0.0, books_count: 0
+GET {{host}}/api/v1/book/author/Autor Inexistente/total-value
+
+### Test 82: Calcular valor total con nombre de autor con caracteres especiales
+GET {{host}}/api/v1/book/author/Antoine de Saint-Exupéry/total-value
+
+### Test 83: Verificar que el cálculo incluye información detallada
+# Debe retornar: author, total_value, books_count y lista de books
+GET {{host}}/api/v1/book/author/Dan Brown/total-value
+
+### Test 84: Calcular valor después de agregar un nuevo libro del mismo autor
+# Primero verificamos el valor actual
+GET {{host}}/api/v1/book/author/Jane Austen/total-value
+
+### Test 85: Crear un nuevo libro de Jane Austen (requiere admin)
+POST {{host}}/api/v1/book/
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "title": "Emma",
+  "author": "Jane Austen",
+  "id_IBSN": "9780141439587",
+  "gender": "Romance",
+  "yearPublished": 1815,
+  "weight": 0.45,
+  "price": 19.99,
+  "description": "Una novela sobre las complicaciones del cortejo y la clase social"
+}
+
+### Test 86: Recalcular valor total de Jane Austen (ahora debe incluir el nuevo libro)
+# Respuesta esperada: suma del libro anterior + 19.99
+GET {{host}}/api/v1/book/author/Jane Austen/total-value
+
+### Test 87: Comparar valores totales de diferentes autores
+# Test para verificar que los cálculos son independientes por autor
+GET {{host}}/api/v1/book/author/Carlos Ruiz Zafón/total-value
+
+### Test 88: Verificar autor con nombre compuesto
+GET {{host}}/api/v1/book/author/Ken Follett/total-value
+
+### Test 89: Verificar que el algoritmo funciona con inventario completo
+# Listar todos los libros para confirmar el estado del inventario
+GET {{host}}/api/v1/book/
+
+### Test 90: Calcular valor total para verificar recursión con Stack
+# Este test confirma que el algoritmo TotalValue procesa correctamente usando Stack
+GET {{host}}/api/v1/book/author/Ildefonso Falcones/total-value
+
+### =============================================================================
+### NOTAS SOBRE EL ALGORITMO TOTALVALUE
+### =============================================================================
+
+# FUNCIONAMIENTO DEL ALGORITMO:
+# 1. Recibe una lista de todos los libros del inventario
+# 2. Crea una pila (Stack) y añade todos los libros
+# 3. Procesa recursivamente cada libro sacándolo de la pila
+# 4. Si el autor del libro coincide, suma su precio al acumulado
+# 5. Retorna el valor total cuando la pila está vacía
+
+# ESTRUCTURA DE RESPUESTA:
+# {
+#   "message": "Valor total calculado para el autor 'X'",
+#   "data": {
+#     "author": "Nombre del Autor",
+#     "total_value": 99.99,
+#     "books_count": 3,
+#     "books": [
+#       {
+#         "title": "Título del Libro",
+#         "isbn": "9780123456789",
+#         "price": 19.99
+#       },
+#       ...
+#     ]
+#   }
+# }
+
+# CASOS DE PRUEBA:
+# - Autor con 0 libros: total_value = 0.0
+# - Autor con 1 libro: total_value = precio del libro
+# - Autor con múltiples libros: total_value = suma de todos los precios
+# - Nombres con caracteres especiales: debe funcionar correctamente
+# - Sensible a mayúsculas/minúsculas: debe coincidir exactamente
+
+### =============================================================================
+### FIN DE TESTS DE TOTALVALUE
+### =============================================================================
+
+### =============================================================================
+### TESTS DE GLOBALREPORT - REPORTE GLOBAL DE INVENTARIO
+### =============================================================================
+### 
+### DESCRIPCIÓN:
+### El endpoint globalReport genera un reporte ordenado de todos los libros
+### del inventario según su valor. Permite ordenar ascendente/descendente
+### y opcionalmente guardar el reporte en formato CSV o JSON.
+### =============================================================================
+
+### Test 91: Generar reporte global básico (JSON, descendente)
+# Obtiene todos los libros ordenados de mayor a menor valor
+# No guarda archivo, solo retorna el reporte
+GET {{host}}/api/v1/book/report/global
+
+### Test 92: Generar reporte global ascendente (de menor a mayor valor)
+# Útil para identificar los libros de menor valor
+GET {{host}}/api/v1/book/report/global?descending=false
+
+### Test 93: Generar reporte y guardar en formato JSON
+# Crea un archivo JSON en docs/demo/result_demos con timestamp
+GET {{host}}/api/v1/book/report/global?save_file=true&format=json
+
+### Test 94: Generar reporte y guardar en formato CSV
+# Crea un archivo CSV con una fila final mostrando el TOTAL
+GET {{host}}/api/v1/book/report/global?save_file=true&format=csv
+
+### Test 95: Generar reporte CSV ascendente con archivo
+# Combina ordenamiento ascendente con guardado en CSV
+GET {{host}}/api/v1/book/report/global?save_file=true&format=csv&descending=false
+
+### Test 96: Verificar inventario antes de generar reporte
+# Listar todos los libros para confirmar el estado del inventario
+GET {{host}}/api/v1/book/
+
+### Test 97: Generar reporte con campo de valor personalizado
+# Aunque value_cop es el campo por defecto, se puede especificar explícitamente
+GET {{host}}/api/v1/book/report/global?value_key=value_cop
+
+### =============================================================================
+### NOTAS SOBRE EL ALGORITMO GLOBALREPORT
+### =============================================================================
+
+# FUNCIONAMIENTO DEL ALGORITMO:
+# 1. Obtiene todos los libros del inventario
+# 2. Convierte cada libro a diccionario
+# 3. Ordena los libros por el campo especificado (value_key)
+# 4. Opcionalmente guarda el reporte en CSV (con fila TOTAL) o JSON
+# 5. Retorna el reporte ordenado con estadísticas
+
+# ESTRUCTURA DE RESPUESTA:
+# {
+#   "message": "Reporte global generado exitosamente",
+#   "data": {
+#     "books": [
+#       {
+#         "id_IBSN": "9780123456789",
+#         "title": "Título del Libro",
+#         "author": "Nombre Autor",
+#         "value_cop": 25000,
+#         "weight": 0.5,
+#         ...
+#       },
+#       ...
+#     ],
+#     "total_books": 50,
+#     "total_value": 1250000.00,
+#     "format": "json",
+#     "file_saved": "docs/demo/result_demos/global_report_20251211_123045.json"  // solo si save_file=true
+#   }
+# }
+
+# PARÁMETROS DE CONSULTA:
+# - format: 'csv' o 'json' (default: 'json')
+# - value_key: campo por el cual ordenar (default: 'value_cop')
+# - descending: true para mayor->menor, false para menor->mayor (default: true)
+# - save_file: true para guardar archivo, false solo retornar (default: false)
+
+# CASOS DE USO:
+# - Auditoría de inventario: ver todos los libros con su valor
+# - Identificar libros más valiosos: usar descending=true
+# - Identificar libros menos valiosos: usar descending=false
+# - Exportar reporte: usar save_file=true con formato deseado
+# - Análisis en Excel: exportar en CSV para abrir en Excel
+
+# FORMATO CSV:
+# - Incluye encabezados con todos los campos de los libros
+# - Última fila contiene "TOTAL" y la suma de todos los valores
+# - Útil para análisis rápido del valor total del inventario
+
+# FORMATO JSON:
+# - Lista de objetos JSON con todos los campos
+# - Fácil de procesar programáticamente
+# - Mantiene tipos de datos originales
+
+### =============================================================================
+### FIN DE TESTS DE GLOBALREPORT
+### =============================================================================
+
+### =============================================================================
+### TESTS DE AVERAGEWEIGHTTAIL - PESO PROMEDIO CON RECURSIÓN DE COLA
+### =============================================================================
+### 
+### DESCRIPCIÓN:
+### El endpoint average-weight calcula el peso promedio de todos los libros
+### de un autor específico utilizando un algoritmo de recursión de cola
+### (tail recursion). El algoritmo muestra en consola cada paso de la recursión
+### para demostrar el funcionamiento de los acumuladores.
+### =============================================================================
+
+### Test 98: Calcular peso promedio de autor con múltiples libros
+# J.R.R. Tolkien tiene 2 libros con pesos diferentes
+# Revisar la consola del servidor para ver la recursión de cola en acción
+GET {{host}}/api/v1/book/author/J.R.R. Tolkien/average-weight
+
+### Test 99: Calcular peso promedio de autor con un solo libro
+# Gabriel García Márquez tiene 1 libro
+GET {{host}}/api/v1/book/author/Gabriel García Márquez/average-weight
+
+### Test 100: Calcular peso promedio de autor inexistente
+# Debe retornar average_weight: 0.0 y total_books: 0
+GET {{host}}/api/v1/book/author/Autor Inexistente/average-weight
+
+### Test 101: Calcular peso promedio para múltiples autores
+# Ken Follett tiene varios libros
+GET {{host}}/api/v1/book/author/Ken Follett/average-weight
+
+### Test 102: Verificar autor con caracteres especiales en el nombre
+# Miguel de Cervantes
+GET {{host}}/api/v1/book/author/Miguel de Cervantes/average-weight
+
+### Test 103: Calcular peso promedio - Ildefonso Falcones
+GET {{host}}/api/v1/book/author/Ildefonso Falcones/average-weight
+
+### Test 104: Listar todos los libros para verificar inventario
+# Útil para ver qué autores tienen libros disponibles
+GET {{host}}/api/v1/book/
+
+### =============================================================================
+### NOTAS SOBRE EL ALGORITMO AVERAGEWEIGHTTAIL
+### =============================================================================
+
+# FUNCIONAMIENTO DEL ALGORITMO:
+# 1. Utiliza recursión de cola (tail recursion) con acumuladores
+# 2. Procesa cada libro del inventario de forma recursiva
+# 3. Mantiene acumuladores para:
+#    - total_weight: suma de pesos de libros del autor
+#    - count: número de libros del autor encontrados
+#    - index: posición actual en la lista
+# 4. Muestra en consola cada paso de la recursión (logging educativo)
+# 5. Al llegar al caso base, calcula el promedio: total_weight / count
+
+# VENTAJAS DE LA RECURSIÓN DE COLA:
+# - Optimizable por el compilador/intérprete
+# - No crece la pila de llamadas (tail call optimization)
+# - Usa acumuladores en lugar de esperar resultados de llamadas recursivas
+# - Más eficiente que recursión tradicional
+
+# LOGGING EN CONSOLA:
+# El algoritmo imprime en la consola del servidor:
+# - Nivel de profundidad de cada llamada recursiva
+# - Libro actual siendo procesado
+# - Estado de los acumuladores (total_weight, count)
+# - Si el libro coincide con el autor buscado
+# - Caso base y cálculo final del promedio
+
+# ESTRUCTURA DE RESPUESTA:
+# {
+#   "message": "Peso promedio calculado para el autor 'X' usando recursión de cola",
+#   "data": {
+#     "author": "Nombre del Autor",
+#     "average_weight": 0.825,
+#     "total_books": 2,
+#     "books": [
+#       {
+#         "title": "Título del Libro",
+#         "isbn": "9780123456789",
+#         "weight": 1.2
+#       },
+#       ...
+#     ]
+#   }
+# }
+
+# CASOS DE PRUEBA:
+# - Autor con 0 libros: average_weight = 0.0
+# - Autor con 1 libro: average_weight = peso del libro
+# - Autor con múltiples libros: average_weight = suma_pesos / cantidad
+# - Revisar consola para ver proceso recursivo completo
+
+# EJEMPLO DE OUTPUT EN CONSOLA:
+# ================================================================================
+# INICIANDO CÁLCULO DE PESO PROMEDIO - RECURSIÓN DE COLA
+# Autor buscado: 'J.R.R. Tolkien'
+# Total de libros en inventario: 20
+# ================================================================================
+# 
+# [RECURSIÓN COLA - Nivel 0] Procesando libro 1/20
+# ├─ Título: 'El tiempo entre costuras'
+# ├─ Autor: 'María Dueñas'
+# ├─ Peso: 0.65 kg
+# ├─ ✗ NO coincide (buscando 'J.R.R. Tolkien')
+# └─ → Llamada recursiva sin actualizar acumuladores
+# ...
+# [RECURSIÓN COLA - Nivel N] CASO BASE ALCANZADO
+# ├─ Total de libros procesados: 20
+# ├─ Libros del autor 'J.R.R. Tolkien': 2
+# ├─ Peso total acumulado: 1.65 kg
+# └─ RESULTADO: 0.8250 kg (promedio = 1.65 / 2)
+
+### =============================================================================
+### FIN DE TESTS DE AVERAGEWEIGHTTAIL
+### =============================================================================
+
+

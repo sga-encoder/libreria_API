@@ -102,3 +102,23 @@ def create_bookcase(bookcase_data: BookCaseCreate):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error al crear el bookcase: {str(e)}"
         )
+@admin_router.get("/pila/{author}", dependencies=[Depends(get_current_admin)])
+def read_by_author(author: str, token: str = Depends(oauth2_scheme)):
+    """Leer administradores por autor"""
+    data = admin_service.read_admins_by_author(author)
+    return {"message": f"se han leído satisfactoriamente los administradores del autor {author}", "data": [admin.to_dict() for admin in data]}
+@admin_router.get("/pila/{prices}", dependencies=[Depends(get_current_admin)])
+def read_by_price_range(prices: str, token: str = Depends(oauth2_scheme)):
+    """Leer administradores por rango de precios"""
+    try:
+        min_price_str, max_price_str = prices.split(",")
+        min_price = float(min_price_str)
+        max_price = float(max_price_str)
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="El formato de 'prices' debe ser 'min,max' con valores numéricos"
+        )
+    
+    data = admin_service.read_admins_by_price_range(min_price, max_price)
+    return {"message": f"se han leído satisfactoriamente los administradores en el rango de precios {min_price} - {max_price}", "data": [admin.to_dict() for admin in data]}
