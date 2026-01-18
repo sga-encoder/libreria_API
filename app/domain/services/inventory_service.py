@@ -5,11 +5,13 @@ Proporciona la clase InventoryService que maneja la carga, lectura,
 creación, actualización y eliminación de libros usando BooksRepository.
 Mantiene tanto la estructura de pila (inventario) como una lista ordenada.
  """
+import logging
 from typing import List, Dict, Any, Optional
 from app.domain.repositories import BooksRepository
 from app.domain.structures import Stack
-from app.domain.models import Book
-from app.domain.algorithms import insertion_sort, TotalValue, generate_global_report, generate_and_save, get_average_weight_by_author
+from app.domain.models import Book, Loan
+from app.domain.algorithms import insertion_sort, TotalValue, generate_global_report, generate_and_save, get_average_weight_by_author, binary_search
+from app.domain.exceptions import ValidationException, ResourceNotFoundException, RepositoryException
 
 class InventoryService:
     """
@@ -30,11 +32,21 @@ class InventoryService:
 
         Args:
             url (str): URL o ruta de conexión al repositorio de libros.
-
-        No devuelve nada. En caso de error, inicializa inventario vacío.
+            
+        Raises:
+            ValidationException: Si url no es válido.
+            RepositoryException: Si hay error al cargar el inventario.
         """
+        self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
+        
+        if not url or not isinstance(url, str):
+            self.logger.error(f"URL inválida: {url}")
+            raise ValidationException(f"La URL debe ser una cadena no vacía, recibido: {type(url).__name__}")
+        
         self.__books_repository = BooksRepository(url)
         self.__load()
+        
+        self.logger.info("InventoryService inicializado correctamente")
         
     def get_inventary(self) -> Stack[Book]:
         """
@@ -58,27 +70,47 @@ class InventoryService:
         """
         Carga los libros desde el repositorio en las estructuras internas.
 
-        Intenta leer todos los libros, crear la pila de inventario y la lista ordenada.
-        En caso de error inicializa estructuras vacías y registra el error por consola.
+        Lee todos los libros, crea la pila de inventario y la lista ordenada de libros disponibles.
+        
+        Raises:
+            RepositoryException: Si hay error crítico al cargar el inventario.
         """
         try:
+            self.logger.debug("Iniciando carga de inventario...")
             inventary = self.__books_repository.read_all()
+            
             if inventary is None:
+                self.logger.warning("No hay libros en el repositorio, inicializando inventario vacío")
                 self.__inventary = Stack[Book]()
                 self.__order_inventary = []
             else:
                 self.__inventary = inventary
-                # Cargar los libros en el inventario de la biblioteca
+                order_inventary = []
+                
+                for book in self.__inventary.to_list():
+                    if not book.get_is_borrowed():
+                        order_inventary.append(book)
+                
+                self.logger.debug(f"Ordenando {len(order_inventary)} libros disponibles...")
                 self.__order_inventary = insertion_sort(
-                    self.__inventary.to_list(),
+                    order_inventary,
                     key=lambda book: book.get_id_IBSN()
                 )
+                
+                total_books = len(self.__inventary.to_list())
+                available_books = len(self.__order_inventary)
+                self.logger.info(
+                    f"Inventario cargado: {total_books} libros totales, "
+                    f"{available_books} disponibles"
+                )
+                
+        except RepositoryException:
+            raise
         except Exception as e:
-            print(f"Error loading inventory: {e}")
-            self.__inventary = Stack[Book]()
-            self.__order_inventary = []
+            self.logger.error(f"Error crítico cargando inventario: {e}", exc_info=True)
+            raise RepositoryException(f"Error crítico al cargar inventario: {e}")
         
-    def add_book(self, json: dict) -> Book:
+    def add(self, json: dict) -> Book:
         """
         Crea y añade un libro al inventario.
 
@@ -87,23 +119,50 @@ class InventoryService:
 
         Returns:
             Book: Instancia del libro creada.
-
-        Lanza la excepción original si falla la creación en el repositorio.
+            
+        Raises:
+            ValidationException: Si json no es válido o faltan campos obligatorios.
+            RepositoryException: Si hay error al crear o guardar el libro.
         """
         try:
-            book = self.__books_repository.create(json)
+            if not json or not isinstance(json, dict):
+                self.logger.error(f"Datos de libro inválidos: {type(json).__name__}")
+                raise ValidationException("Los datos del libro deben ser un diccionario válido")
+            
+            # Validar campos obligatorios
+            required_fields = ["id_IBSN", "title", "author"]
+            missing_fields = [field for field in required_fields if not json.get(field)]
+            
+            if missing_fields:
+                self.logger.error(f"Faltan campos obligatorios: {missing_fields}")
+                raise ValidationException(
+                    f"Faltan campos obligatorios: {', '.join(missing_fields)}"
+                )
+            
+            self.logger.debug(f"Creando libro con ISBN: {json.get('id_IBSN')}")
+            
+            try:
+                book = self.__books_repository.create(json)
+            except Exception as e:
+                self.logger.error(f"Error al crear libro en repositorio: {e}", exc_info=True)
+                raise RepositoryException(f"Error creando libro en repositorio: {e}")
+            
             self.__inventary.push(book)
             self.__order_inventary = insertion_sort(
                 self.__inventary.to_list(),
                 key=lambda b: b.get_id_IBSN()
             )
-            #falta poner la logica de bookCase
+            
+            self.logger.info(f"Libro '{book.get_title()}' agregado exitosamente (ISBN: {book.get_id_IBSN()})")
             return book
+            
+        except (ValidationException, RepositoryException):
+            raise
         except Exception as e:
-            print(f"Error adding book: {e}")
-            raise e
+            self.logger.critical(f"Error inesperado agregando libro: {e}", exc_info=True)
+            raise RepositoryException(f"Error inesperado: {e}")
     
-    def get_book_by_id(self, id_IBSN: str) -> Book:
+    def get_by_id(self, id_IBSN: str) -> Book:
         """
         Lee un libro por su ISBN.
 
@@ -111,71 +170,387 @@ class InventoryService:
             id_IBSN (str): Identificador ISBN del libro.
 
         Returns:
-            Book: Libro encontrado, o None en caso de error.
+            Book: Libro encontrado.
+            
+        Raises:
+            ValidationException: Si id_IBSN es inválido.
+            ResourceNotFoundException: Si el libro no existe.
+            RepositoryException: Si hay error de repositorio.
         """
         try:
+            if not id_IBSN or not isinstance(id_IBSN, str):
+                self.logger.error(f"ISBN inválido: {id_IBSN}")
+                raise ValidationException(f"ISBN inválido: {id_IBSN}")
+            
+            self.logger.debug(f"Buscando libro con ISBN {id_IBSN}")
+            
             book = self.__books_repository.read(id_IBSN)
+            
+            if book is None:
+                self.logger.warning(f"Libro con ISBN {id_IBSN} no encontrado")
+                raise ResourceNotFoundException(f"Libro con ISBN '{id_IBSN}' no encontrado")
+            
+            self.logger.debug(f"Libro encontrado: {book.get_title()}")
             return book
+            
+        except (ValidationException, ResourceNotFoundException):
+            raise
         except Exception as e:
-            print(f"Error reading book: {e}")
-            return None
+            self.logger.error(f"Error obteniendo libro: {e}", exc_info=True)
+            raise RepositoryException(f"Error obteniendo libro: {e}")
     
-    def read_all_books(self) -> list[Book] :
+    def read_all(self) -> list[Book]:
         """
         Recupera todos los libros del repositorio.
 
         Returns:
-            list[Book] | None: Lista de libros (a partir de la pila) o None si no hay datos.
-            En caso de error devuelve la excepción.
+            list[Book]: Lista de todos los libros.
+            
+        Raises:
+            RepositoryException: Si hay error al obtener libros.
         """
         try:
+            self.logger.debug("Obteniendo todos los libros del inventario")
             books = self.__books_repository.read_all()
-            return books.to_list() if books else None
+            
+            if books is None:
+                self.logger.warning("No hay libros en el repositorio, retornando lista vacía")
+                return []
+            
+            book_list = books.to_list()
+            self.logger.info(f"Obtenidos {len(book_list)} libros del inventario")
+            return book_list
+            
         except Exception as e:
-            print(f"Error reading all books: {e}")
-            return None
-    
-    def update_book(self, id_IBSN: str, json: dict) -> Book :
+            self.logger.error(f"Error obteniendo todos los libros: {e}", exc_info=True)
+            raise RepositoryException(f"Error obteniendo libros: {e}")
+        
+    def get_all_not_borrowed(self) -> list[Book]:
         """
-        Actualiza los datos de un libro y recarga el inventario si la operación fue exitosa.
+        Recupera todos los libros disponibles (no prestados) ordenados por ISBN.
+
+        Returns:
+            list[Book]: Lista de libros disponibles ordenados.
+            
+        Raises:
+            RepositoryException: Si hay error al obtener libros.
+        """
+        try:
+            self.logger.debug("Obteniendo libros disponibles (no prestados)")
+            self.__inventary = self.__books_repository.read_all()
+            
+            if self.__inventary is None:
+                self.logger.warning("No hay libros en el repositorio")
+                self.__order_inventary = []
+                return []
+            
+            order_inventary = []
+            for book in self.__inventary.to_list():
+                if not book.get_is_borrowed():
+                    order_inventary.append(book)
+            
+            self.logger.debug(f"Ordenando {len(order_inventary)} libros disponibles")
+            self.__order_inventary = insertion_sort(
+                order_inventary,
+                key=lambda book: book.get_id_IBSN()
+            )
+            
+            self.logger.info(f"{len(self.__order_inventary)} libros disponibles obtenidos")
+            return self.__order_inventary
+            
+        except Exception as e:
+            self.logger.error(f"Error obteniendo libros disponibles: {e}", exc_info=True)
+            raise RepositoryException(f"Error obteniendo libros disponibles: {e}")
+    
+    def update(self, id_IBSN: str, json: dict) -> Book:
+        """
+        Actualiza los datos de un libro y recarga el inventario.
 
         Args:
             id_IBSN (str): ISBN del libro a actualizar.
             json (dict): Campos a actualizar.
 
         Returns:
-            Book: Libro actualizado, o la excepción en caso de error.
+            Book: Libro actualizado.
+            
+        Raises:
+            ValidationException: Si id_IBSN o json son inválidos.
+            ResourceNotFoundException: Si el libro no existe.
+            RepositoryException: Si hay error al actualizar.
         """
-        try:    
-            book = self.__books_repository.update(id_IBSN, json)
+        try:
+            if not id_IBSN or not isinstance(id_IBSN, str):
+                self.logger.error(f"ISBN inválido: {id_IBSN}")
+                raise ValidationException(f"ISBN inválido: {id_IBSN}")
+            
+            if not json or not isinstance(json, dict):
+                self.logger.error(f"Datos de actualización inválidos: {type(json).__name__}")
+                raise ValidationException("Los datos de actualización deben ser un diccionario válido")
+            
+            self.logger.debug(f"Actualizando libro {id_IBSN} con datos: {json.keys()}")
+            
+            # Verificar que el libro existe
+            existing_book = self.__books_repository.read(id_IBSN)
+            if existing_book is None:
+                self.logger.warning(f"Libro {id_IBSN} no encontrado para actualizar")
+                raise ResourceNotFoundException(f"Libro con ISBN '{id_IBSN}' no encontrado")
+            
+            try:
+                book = self.__books_repository.update(id_IBSN, json)
+            except Exception as e:
+                self.logger.error(f"Error actualizando libro en repositorio: {e}", exc_info=True)
+                raise RepositoryException(f"Error actualizando libro: {e}")
+            
+            if book is None:
+                self.logger.critical(f"Repositorio retornó None al actualizar libro {id_IBSN}")
+                raise RepositoryException("El libro no pudo ser actualizado")
+            
             self.__load()
-                
-            #falta poner la logica de bookCase
-            # falta implementar la actualizcion de libros en loans
+            self.logger.info(f"Libro '{book.get_title()}' actualizado exitosamente")
             return book
+            
+        except (ValidationException, ResourceNotFoundException, RepositoryException):
+            raise
         except Exception as e:
-            print(f"Error updating book: {e}")
-            return None
+            self.logger.critical(f"Error inesperado actualizando libro: {e}", exc_info=True)
+            raise RepositoryException(f"Error inesperado: {e}")
     
-    def delete_book(self, id_IBSN: str) -> bool:
+    def delete(self, id_IBSN: str) -> bool:
         """
-        Elimina un libro por su ISBN y recarga el inventario si la eliminación fue exitosa.
+        Elimina un libro por su ISBN y recarga el inventario.
 
         Args:
             id_IBSN (str): ISBN del libro a eliminar.
 
         Returns:
-            bool: True si se eliminó, False en caso contrario, o la excepción en caso de error.
+            bool: True si se eliminó exitosamente.
+            
+        Raises:
+            ValidationException: Si id_IBSN es inválido o el libro está prestado.
+            ResourceNotFoundException: Si el libro no existe.
+            RepositoryException: Si hay error al eliminar.
         """
         try:
-            #fata no eliminar libros si aun estan prestados
-            result = self.__books_repository.delete(id_IBSN)
+            if not id_IBSN or not isinstance(id_IBSN, str):
+                self.logger.error(f"ISBN inválido: {id_IBSN}")
+                raise ValidationException(f"ISBN inválido: {id_IBSN}")
+            
+            self.logger.debug(f"Eliminando libro {id_IBSN}")
+            
+            # Verificar que el libro existe
+            existing_book = self.__books_repository.read(id_IBSN)
+            if existing_book is None:
+                self.logger.warning(f"Libro {id_IBSN} no encontrado para eliminar")
+                raise ResourceNotFoundException(f"Libro con ISBN '{id_IBSN}' no encontrado")
+            
+            # Validar que el libro no esté prestado
+            if existing_book.get_is_borrowed():
+                self.logger.warning(
+                    f"No se puede eliminar el libro '{existing_book.get_title()}' porque está prestado"
+                )
+                raise ValidationException(
+                    f"No se puede eliminar el libro '{existing_book.get_title()}' porque está prestado"
+                )
+            
+            try:
+                result = self.__books_repository.delete(id_IBSN)
+            except Exception as e:
+                self.logger.error(f"Error eliminando libro del repositorio: {e}", exc_info=True)
+                raise RepositoryException(f"Error eliminando libro: {e}")
+            
             if result:
                 self.__load()
-            return result
+                self.logger.info(f"Libro con ISBN {id_IBSN} eliminado exitosamente")
+            else:
+                self.logger.error(f"No se pudo eliminar el libro {id_IBSN}")
+                raise RepositoryException(f"No se pudo eliminar el libro {id_IBSN}")
+            
+            return True
+            
+        except (ValidationException, ResourceNotFoundException, RepositoryException):
+            raise
         except Exception as e:
-            print(f"Error deleting book: {e}")
-            return False
+            self.logger.critical(f"Error inesperado eliminando libro: {e}", exc_info=True)
+            raise RepositoryException(f"Error inesperado: {e}")
+
+    def loan_book(self, id_IBSN: str) -> bool:
+        """
+        Marca un libro como prestado.
+        
+        Args:
+            id_IBSN: ISBN del libro a marcar como prestado.
+            
+        Returns:
+            bool: True si se marcó exitosamente.
+            
+        Raises:
+            ValidationException: Si id_IBSN es inválido.
+            ResourceNotFoundException: Si el libro no existe.
+            RepositoryException: Si hay error al actualizar.
+        """
+        try:
+            if not id_IBSN or not isinstance(id_IBSN, str):
+                self.logger.error(f"ISBN inválido: {id_IBSN}")
+                raise ValidationException(f"ISBN inválido: {id_IBSN}")
+            
+            self.logger.debug(f"Marcando libro {id_IBSN} como prestado")
+            
+            try:
+                self.__books_repository.loan(id_IBSN)
+            except Exception as e:
+                self.logger.error(f"Error al marcar libro como prestado: {e}", exc_info=True)
+                raise RepositoryException(f"Error al marcar libro como prestado: {e}")
+            
+            self.logger.info(f"Libro {id_IBSN} marcado como prestado exitosamente")
+            return True
+            
+        except (ValidationException, ResourceNotFoundException, RepositoryException):
+            raise
+        except Exception as e:
+            self.logger.critical(f"Error inesperado marcando libro como prestado: {e}", exc_info=True)
+            raise RepositoryException(f"Error inesperado: {e}")
+        
+    def return_loan_book(self, id_IBSN: str) -> bool:
+        """
+        Marca un libro como devuelto (disponible).
+        
+        Args:
+            id_IBSN: ISBN del libro a marcar como disponible.
+            
+        Returns:
+            bool: True si se marcó exitosamente.
+            
+        Raises:
+            ValidationException: Si id_IBSN es inválido.
+            ResourceNotFoundException: Si el libro no existe.
+            RepositoryException: Si hay error al actualizar.
+        """
+        try:
+            if not id_IBSN or not isinstance(id_IBSN, str):
+                self.logger.error(f"ISBN inválido: {id_IBSN}")
+                raise ValidationException(f"ISBN inválido: {id_IBSN}")
+            
+            self.logger.debug(f"Marcando libro {id_IBSN} como disponible")
+            
+            try:
+                self.__books_repository.return_loan(id_IBSN)
+            except Exception as e:
+                self.logger.error(f"Error al marcar libro como disponible: {e}", exc_info=True)
+                raise RepositoryException(f"Error al marcar libro como disponible: {e}")
+            
+            self.logger.info(f"Libro {id_IBSN} marcado como disponible exitosamente")
+            return True
+            
+        except (ValidationException, ResourceNotFoundException, RepositoryException):
+            raise
+        except Exception as e:
+            self.logger.critical(f"Error inesperado marcando libro como disponible: {e}", exc_info=True)
+            raise RepositoryException(f"Error inesperado: {e}")
+
+    def add_book_to_ordered_list(self, book: Book) -> bool:
+        """Añade un libro a la lista ordenada de inventario.
+
+        Inserta el libro en la posición correcta para mantener el orden
+        lexicográfico por ISBN. Solo afecta la lista ordenada; no modifica
+        la pila de inventario ni el repositorio.
+
+        Args:
+            book (Book): Instancia del libro a añadir.
+
+        Returns:
+            bool: True si se añadió correctamente.
+            
+        Raises:
+            ValidationException: Si book es None o inválido.
+        """
+        try:
+            if book is None:
+                self.logger.error("No se puede agregar un libro None a la lista ordenada")
+                raise ValidationException("El libro no puede ser None")
+            
+            if not isinstance(book, Book):
+                self.logger.error(f"Objeto inválido: {type(book).__name__}")
+                raise ValidationException(f"Se esperaba Book, recibido: {type(book).__name__}")
+            
+            self.logger.debug(f"Agregando libro '{book.get_title()}' a lista ordenada")
+            
+            self.__order_inventary.append(book)
+            self.__order_inventary = insertion_sort(
+                self.__order_inventary,
+                key=lambda b: b.get_id_IBSN()
+            )
+            
+            self.logger.info(f"Libro '{book.get_title()}' agregado a lista ordenada")
+            return True
+            
+        except ValidationException:
+            raise
+        except Exception as e:
+            self.logger.error(f"Error agregando libro a lista ordenada: {e}", exc_info=True)
+            raise RepositoryException(f"Error agregando libro a lista ordenada: {e}") 
+
+    def delete_books_from_ordered_list(self, loans: List[Loan]) -> bool:
+        """Elimina de la lista ordenada los libros asociados a los préstamos dados.
+
+        Busca cada ISBN de los préstamos con `binary_search` sobre `__order_inventary`
+        (lista ya ordenada lexicográficamente por ISBN). Solo afecta la lista ordenada;
+        no modifica la pila de inventario ni el repositorio.
+
+        Args:
+            loans (List[Loan]): Préstamos cuyas referencias de libro se desean eliminar.
+
+        Returns:
+            bool: True si se eliminó al menos un libro.
+            
+        Raises:
+            ValidationException: Si loans no es una lista válida.
+        """
+        try:
+            if not isinstance(loans, list):
+                self.logger.error(f"Loans debe ser una lista, recibido: {type(loans).__name__}")
+                raise ValidationException(f"Loans debe ser una lista, recibido: {type(loans).__name__}")
+            
+            if not loans:
+                self.logger.debug("Lista de préstamos vacía, no hay libros que eliminar")
+                return False
+            
+            self.logger.debug(f"Eliminando {len(loans)} libros de la lista ordenada")
+            
+            indices_to_delete = []
+            
+            for loan in loans:
+                try:
+                    index = binary_search(
+                        self.__order_inventary,
+                        key=lambda book: book.get_id_IBSN(),
+                        item=loan.get_book()
+                    )
+                    
+                    if index >= 0:
+                        indices_to_delete.append(index)
+                        self.logger.debug(f"Libro '{loan.get_book().get_title()}' encontrado en índice {index}")
+                        
+                except (IndexError, Exception) as e:
+                    self.logger.warning(f"Error buscando libro en lista ordenada: {e}")
+                    continue
+            
+            if not indices_to_delete:
+                self.logger.info("No se encontraron libros para eliminar de la lista ordenada")
+                return False
+            
+            indices_to_delete.sort(reverse=True)
+            
+            for index in indices_to_delete:
+                del self.__order_inventary[index]
+            
+            self.logger.info(f"{len(indices_to_delete)} libros eliminados de la lista ordenada")
+            return True
+            
+        except ValidationException:
+            raise
+        except Exception as e:
+            self.logger.error(f"Error eliminando libros de lista ordenada: {e}", exc_info=True)
+            raise RepositoryException(f"Error eliminando libros de lista ordenada: {e}")
     
     def get_total_value_by_author(self, author: str) -> float:
         """
@@ -197,18 +572,27 @@ class InventoryService:
             >>> print(f"Valor total: ${total:.2f}")
         """
         try:
-            # Obtener todos los libros del inventario como lista
+            if not author or not isinstance(author, str):
+                self.logger.error(f"Autor inválido: {author}")
+                raise ValidationException(f"El autor debe ser una cadena no vacía, recibido: {type(author).__name__}")
+            
+            self.logger.debug(f"Calculando valor total de libros del autor: {author}")
+            
             books = self.__inventary.to_list()
             
             if not books:
+                self.logger.info(f"No hay libros en inventario para calcular valor del autor {author}")
                 return 0.0
             
-            # Usar el algoritmo TotalValue para calcular el valor total
             total_value = TotalValue(books, author)
             
+            self.logger.info(f"Valor total de libros de '{author}': ${total_value:.2f}")
             return total_value
+            
+        except ValidationException:
+            raise
         except Exception as e:
-            print(f"Error calculating total value by author: {e}")
+            self.logger.error(f"Error calculando valor total por autor: {e}", exc_info=True)
             return 0.0
     
     def generate_global_report(
@@ -245,13 +629,16 @@ class InventoryService:
             >>> report = service.generate_global_report(file_path="./reports/inventory.csv", format="csv")
         """
         try:
-            # Obtener todos los libros del inventario
+            self.logger.debug(f"Generando reporte global de inventario (format={format}, value_key={value_key})")
+            
             books = self.__inventary.to_list()
             
-            # Convertir libros a diccionarios
+            if not books:
+                self.logger.warning("No hay libros en inventario para generar reporte")
+                return []
+            
             books_dicts = [book.to_dict() for book in books]
             
-            # Generar el reporte usando la función de algoritmos
             report = generate_and_save(
                 books=books_dicts,
                 file_path=file_path,
@@ -260,9 +647,15 @@ class InventoryService:
                 descending=descending
             )
             
+            if file_path:
+                self.logger.info(f"Reporte global generado y guardado en: {file_path}")
+            else:
+                self.logger.info(f"Reporte global generado con {len(report)} libros")
+            
             return report
+            
         except Exception as e:
-            print(f"Error generating global report: {e}")
+            self.logger.error(f"Error generando reporte global: {e}", exc_info=True)
             return []
     
     def get_average_weight_by_author(self, author: str) -> Dict[str, Any]:
@@ -288,10 +681,16 @@ class InventoryService:
             >>> print(f"Peso promedio: {result['average_weight']} kg")
         """
         try:
-            # Obtener todos los libros del inventario
+            if not author or not isinstance(author, str):
+                self.logger.error(f"Autor inválido: {author}")
+                raise ValidationException(f"El autor debe ser una cadena no vacía, recibido: {type(author).__name__}")
+            
+            self.logger.debug(f"Calculando peso promedio de libros del autor: {author}")
+            
             books = self.__inventary.to_list()
             
             if not books:
+                self.logger.info(f"No hay libros en inventario para calcular peso promedio del autor {author}")
                 return {
                     "author": author,
                     "average_weight": 0.0,
@@ -299,17 +698,22 @@ class InventoryService:
                     "books": []
                 }
             
-            # Usar el algoritmo de recursión de cola
             result = get_average_weight_by_author(books, author)
             
+            self.logger.info(
+                f"Peso promedio de libros de '{author}': {result['average_weight']:.2f} kg "
+                f"({result['total_books']} libros)"
+            )
+            
             return result
+            
+        except ValidationException:
+            raise
         except Exception as e:
-            print(f"Error calculating average weight by author: {e}")
+            self.logger.error(f"Error calculando peso promedio por autor: {e}", exc_info=True)
             return {
                 "author": author,
                 "average_weight": 0.0,
                 "total_books": 0,
                 "books": []
             }
-
-

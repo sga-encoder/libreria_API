@@ -14,7 +14,8 @@ class Settings:
     DATA_PATH_INVENTARY = f"{DATA_PATH}/json/books.json"
     DATA_PATH_USERS = f"{DATA_PATH}/json/users.json"
     DATA_PATH_ADMINS = f"{DATA_PATH}/json/admins.json"
-    DATA_PATH_LOANS_RECORDS = f"{DATA_PATH}/json/loans_records.json"
+    DATA_PATH_LOANS_RECORDS = f"{DATA_PATH}/json/loans.json"
+    DATA_PATH_CURRENT_LOANS = f"{DATA_PATH}/csv/active_loans.csv"
     GOOGLE_BOOKS_API_KEY = GOOGLE_BOOKS_API_KEY
     ALGORITHM = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES = 100000000

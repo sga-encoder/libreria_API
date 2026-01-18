@@ -13,15 +13,12 @@ class TypeOrderingEnum(str, Enum):
 
 
 class LoanCreate(BaseModel):
-    user: str
-    book: str
-    loanDate: datetime
+    id_user: str
+    id_ISBN_book: str
 
 
 class LoanUpdate(BaseModel):
-    user: Optional[str] = None
-    book: Optional[str] = None
-    loanDate: Optional[datetime] = None
+    id_ISBN_book: str
 
 
 class BookCaseCreate(BaseModel):

@@ -1,0 +1,134 @@
+[
+  {
+    "id_IBSN": "9780441172719",
+    "title": "Dune",
+    "author": "Frank Herbert",
+    "gender": "Fiction",
+    "weight": 0.64,
+    "price": 19000,
+    "description": "• DUNE: PART TWO • THE MAJOR MOTION PICTURE Directed by Denis Villeneuve, screenplay by Denis Villeneuve and Jon Spaihts, based on the novel Dune by Frank Herbert • Starring Timothée Chalamet, Zendaya, Rebecca Ferguson, Josh Brolin, Austin Butler, Florence Pugh, Dave Bautista, Christopher Walken, Stephen McKinley Henderson, Léa Seydoux, with Stellan Skarsgård, with Charlotte Rampling, and Javier Bardem Frank Herbert’s classic masterpiece—a triumph of the imagination and one of the bestselling science fiction novels of all time. Set on the desert planet Arrakis, Dune is the story of Paul Atreides—who would become known as Muad'Dib—and of a great family's ambition to bring to fruition mankind's most ancient and unattainable dream. A stunning blend of adventure and mysticism, environmentalism and politics, Dune won the first Nebula Award, shared the Hugo Award, and formed the basis of what is undoubtedly the grandest epic in science fiction.",
+    "frond_page_url": "http://books.google.com/books/content?id=nrRKDwAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
+    "is_borrowed": false
+  },
+  {
+    "id_IBSN": "9788401337208",
+    "title": "El nombre del viento",
+    "author": "Patrick Rothfuss",
+    "gender": "Literary Collections",
+    "weight": 1.11,
+    "price": 8000,
+    "description": "He robado princesas a reyes agónicos. Incendié la ciudad de Trebon. He pasado la noche con Felurian y he despertado vivo y cuerdo. Me expulsaron de la Universidad a una edad a la que a la mayoría todavía no los dejan entrar. He recorrido de noche caminos de los que otros no se atreven a hablar ni siquiera de día. He hablado con dioses, he amado a mujeres y escrito canciones que hacen llorar a los bardos. \"Me llamo Kvothe. Quizás hayas oído hablar de mi.\"",
+    "frond_page_url": "http://books.google.com/books/content?id=WURvPgAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
+    "is_borrowed": false
+  },
+  {
+    "id_IBSN": "9780062316097",
+    "title": "Sapiens",
+    "author": "Yuval Noah Harari",
+    "gender": "Science",
+    "weight": 0.64,
+    "price": 97000,
+    "description": "One hundred thousand years ago, at least six human species inhabited the earth. Today there is just one. Us. Homo sapiens. How did our species succeed in the battle for dominance? Why did our foraging ancestors come together to create cities and kingdoms? How did we come to believe in gods, nations, and human rights; to trust money, books, and laws; and to be enslaved by bureaucracy, timetables, and consumerism? And what will our world be like in the millennia to come? In Sapiens, Professor Yuval Noah Harari spans the whole of human history, from the very first humans to walk the earth to the radical—and sometimes devastating—breakthroughs of the Cognitive, Agricultural, and Scientific Revolutions. Drawing on insights from biology, anthropology, paleontology, and economics, and incorporating full-color illustrations throughout the text, he explores how the currents of history have shaped our human societies, the animals and plants around us, and even our personalities. Have we become happier as history has unfolded? Can we ever free our behavior from the legacy of our ancestors? And what, if anything, can we do to influence the course of the centuries to come? Bold, wide-ranging, and provocative, Sapiens integrates history and science to challenge everything we thought we knew about being human: our thoughts, our actions, our heritage...and our future.",
+    "frond_page_url": "http://books.google.com/books/content?id=ibALnwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
+    "is_borrowed": false
+  },
+  {
+    "id_IBSN": "9780345539434",
+    "title": "Cosmos",
+    "author": "Carl Sagan",
+    "gender": "Science",
+    "weight": 0.44,
+    "price": 34000,
+    "description": "Renowned astronomer Carl Sagan’s classic bestseller that “dives into the past, present, and future of science, dealing with the mind-staggering enormity of the cosmos in which we exist” (Associated Press)—with an Introduction by Ann Druyan and a Foreword by Neil deGrasse Tyson “Sagan dazzles the mind with the miracle of our survival, framed by the stately galaxies of space.”—Cosmopolitan THE INSPIRATION FOR THE FOX MINISERIES COSMOS: POSSIBLE WORLDS, HOSTED BY NEIL DEGRASSE TYSON AND STARRING SETH MACFARLANE AND SIR PATRICK STEWART In clear-eyed prose, Carl Sagan reveals a jewel-like blue world inhabited by a life form that is just beginning to discover its own identity and to venture into the vast ocean of space. Featuring full-color illustrations, Cosmos retraces the fourteen billion years of cosmic evolution that have transformed matter into consciousness, exploring such topics as the origin of life, the human brain, Egyptian hieroglyphics, spacecraft missions, the death of the Sun, the evolution of galaxies, and the forces and individuals who helped shape modern science.",
+    "frond_page_url": "http://books.google.com/books/content?id=cDKODQAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
+    "is_borrowed": false
+  },
+  {
+    "id_IBSN": "9780393609394",
+    "title": "Astrophysics for People in a Hurry",
+    "author": "Neil deGrasse Tyson",
+    "gender": "Science",
+    "weight": 1.08,
+    "price": 94000,
+    "description": "Over a year on the New York Times bestseller list and more than a million copies sold. The essential universe, from our most celebrated and beloved astrophysicist. What is the nature of space and time? How do we fit within the universe? How does the universe fit within us? There’s no better guide through these mind-expanding questions than acclaimed astrophysicist and best-selling author Neil deGrasse Tyson. But today, few of us have time to contemplate the cosmos. So Tyson brings the universe down to Earth succinctly and clearly, with sparkling wit, in tasty chapters consumable anytime and anywhere in your busy day. While you wait for your morning coffee to brew, for the bus, the train, or a plane to arrive, Astrophysics for People in a Hurry will reveal just what you need to be fluent and ready for the next cosmic headlines: from the Big Bang to black holes, from quarks to quantum mechanics, and from the search for planets to the search for life in the universe.",
+    "frond_page_url": "http://books.google.com/books/content?id=ll-NEAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
+    "is_borrowed": false
+  },
+  {
+    "id_IBSN": "9780132350884",
+    "title": "Clean Code",
+    "author": "Robert C. Martin",
+    "gender": "Computers",
+    "weight": 1.08,
+    "price": 84000,
+    "description": "This title shows the process of cleaning code. Rather than just illustrating the end result, or just the starting and ending state, the author shows how several dozen seemingly small code changes can positively impact the performance and maintainability of an application code base.",
+    "frond_page_url": "http://books.google.com/books/content?id=hjEFCAAAQBAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
+    "is_borrowed": false
+  },
+  {
+    "id_IBSN": "9780134494166",
+    "title": "Clean Architecture",
+    "author": "Robert C. Martin",
+    "gender": "Computers",
+    "weight": 0.71,
+    "price": 66000,
+    "description": "Building upon the success of best-sellers The Clean Coder and Clean Code, legendary software craftsman Robert C. \"Uncle Bob\" Martin shows how to bring greater professionalism and discipline to application architecture and design. As with his other books, Martin's Clean Architecture doesn't merely present multiple choices and options, and say \"use your best judgment\": it tells you what choices to make, and why those choices are critical to your success. Martin offers direct, is essential reading for every software architect, systems analyst, system designer, and software manager-- and for any programmer who aspires to these roles or is impacted by their work.",
+    "frond_page_url": "http://books.google.com/books/content?id=8ngAkAEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
+    "is_borrowed": false
+  },
+  {
+    "id_IBSN": "9781593279509",
+    "title": "Eloquent JavaScript, 3rd Edition",
+    "author": "Marijn Haverbeke",
+    "gender": "Computers",
+    "weight": 1.22,
+    "price": 9000,
+    "description": "Completely revised and updated, this best-selling introduction to programming in JavaScript focuses on writing real applications. JavaScript lies at the heart of almost every modern web application, from social apps like Twitter to browser-based game frameworks like Phaser and Babylon. Though simple for beginners to pick up and play with, JavaScript is a flexible, complex language that you can use to build full-scale applications. This much anticipated and thoroughly revised third edition of Eloquent JavaScript dives deep into the JavaScript language to show you how to write beautiful, effective code. It has been updated to reflect the current state of Java¬Script and web browsers and includes brand-new material on features like class notation, arrow functions, iterators, async functions, template strings, and block scope. A host of new exercises have also been added to test your skills and keep you on track. As with previous editions, Haverbeke continues to teach through extensive examples and immerses you in code from the start, while exercises and full-chapter projects give you hands-on experience with writing your own programs. You start by learning the basic structure of the JavaScript language as well as control structures, functions, and data structures to help you write basic programs. Then you'll learn about error handling and bug fixing, modularity, and asynchronous programming before moving on to web browsers and how JavaScript is used to program them. As you build projects such as an artificial life simulation, a simple programming language, and a paint program, you'll learn how to: - Understand the essential elements of programming, including syntax, control, and data - Organize and clarify your code with object-oriented and functional programming techniques - Script the browser and make basic web applications - Use the DOM effectively to interact with browsers - Harness Node.js to build servers and utilities Isn't it time you became fluent in the language of the Web? * All source code is available online in an inter¬active sandbox, where you can edit the code, run it, and see its output instantly.",
+    "frond_page_url": "http://books.google.com/books/content?id=p1v6DwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
+    "is_borrowed": false
+  },
+  {
+    "id_IBSN": "9781593276034",
+    "title": "Python Crash Course",
+    "author": "Eric Matthes",
+    "gender": "Computers",
+    "weight": 0.87,
+    "price": 34000,
+    "description": "Learn Python—Fast! Python Crash Course is a fast-paced, thorough introduction to Python that will have you writing programs, solving problems, and making things that work in no time. In the first half of the book, you’ll learn about basic programming concepts, such as lists, dictionaries, classes, and loops, and practice writing clean and readable code with exercises for each topic. You’ll also learn how to make your programs interactive and how to test your code safely before adding it to a project. In the second half of the book, you’ll put your new knowledge into practice with three substantial projects: a Space Invaders–inspired arcade game, data visualizations with Python’s super-handy libraries, and a simple web app you can deploy online. As you work through Python Crash Course you’ll learn how to: *Use powerful Python libraries and tools, including matplotlib, NumPy, and Pygal *Make 2D games that respond to keypresses and mouse clicks, and that grow more difficult as the game progresses *Work with data to generate interactive visualizations *Create and customize Web apps and deploy them safely online *Deal with mistakes and errors so you can solve your own programming problems If you’ve been thinking seriously about digging into programming, Python Crash Course will get you up to speed and have you writing real programs fast. Why wait any longer? Start your engines and code! Uses Python 2 and 3",
+    "frond_page_url": "http://books.google.com/books/content?id=RXoZCwAAQBAJ&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
+    "is_borrowed": false
+  },
+  {
+    "id_IBSN": "9781569319017",
+    "title": "One Piece, Vol. 1",
+    "author": "Eiichiro Oda",
+    "gender": "Comics & Graphic Novels",
+    "weight": 0.84,
+    "price": 17000,
+    "description": "Join Monkey D. Luffy and his swashbuckling crew in their search for the ultimate treasure, One Piece! As a child, Monkey D. Luffy dreamed of becoming King of the Pirates. But his life changed when he accidentally gained the power to stretch like rubber…at the cost of never being able to swim again! Years, later, Luffy sets off in search of the “One Piece,” said to be the greatest treasure in the world... As a child, Monkey D. Luffy was inspired to become a pirate by listening to the tales of the buccaneer \"Red-Haired\" Shanks. But his life changed when Luffy accidentally ate the Gum-Gum Devil Fruit and gained the power to stretch like rubber...at the cost of never being able to swim again! Years later, still vowing to become the king of the pirates, Luffy sets out on his adventure...one guy alone in a rowboat, in search of the legendary \"One Piece,\" said to be the greatest treasure in the world...",
+    "frond_page_url": "",
+    "is_borrowed": false
+  },
+  {
+    "id_IBSN": "9781569319000",
+    "title": "Naruto: Practice makes perfect",
+    "author": "Masashi Kishimoto",
+    "gender": "Comic books, strips, etc",
+    "weight": 1.0,
+    "price": 0,
+    "description": "In the village of Konohagakure, school is literally a battlefield where classmates are ninjas in training competing to become the greatest ninja in the land.",
+    "frond_page_url": "http://books.google.com/books/content?id=VZjmnQEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api",
+    "is_borrowed": false
+  },
+  {
+    "id_IBSN": "9780553897845",
+    "title": "A Game of Thrones",
+    "author": "George R. R. Martin",
+    "gender": "Fiction",
+    "weight": 1.24,
+    "price": 45000,
+    "description": "NOW THE ACCLAIMED HBO SERIES GAME OF THRONES—THE MASTERPIECE THAT BECAME A CULTURAL PHENOMENON Here is the first book in the landmark series that has redefined imaginative fiction and become a modern masterpiece. A GAME OF THRONES In a land where summers can last decades and winters a lifetime, trouble is brewing. The cold is returning, and in the frozen wastes to the North of Winterfell, sinister and supernatural forces are massing beyond the kingdom’s protective Wall. At the center of the conflict lie the Starks of Winterfell, a family as harsh and unyielding as the land they were born to. Sweeping from a land of brutal cold to a distant summertime kingdom of epicurean plenty, here is a tale of lords and ladies, soldiers and sorcerers, assassins and bastards, who come together in a time of grim omens. Amid plots and counterplots, tragedy and betrayal, victory and terror, the fate of the Starks, their allies, and their enemies hangs perilously in the balance, as each endeavors to win that deadliest of conflicts: the game of thrones. A GAME OF THRONES • A CLASH OF KINGS • A STORM OF SWORDS • A FEAST FOR CROWS • A DANCE WITH DRAGONS",
+    "frond_page_url": "http://books.google.com/books/content?id=5NomkK4EV68C&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api",
+    "is_borrowed": false
+  }
+]

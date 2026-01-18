@@ -1,5 +1,5 @@
 @host = http://localhost:8000/api/v1
-@token = 
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0aGVQcmlzbW8uYWR2ZW50dXJlQHRpbWUuY2FydG9vbiIsInJvbGUiOiJVU0VSIiwiZXhwIjo3NzY3NjMxNzQyfQ.p-cFnHyrJGzBoMFUfI4_7GFn1sIbVPfBCccTAcefbjs
 
 ### =============================================================================
 ### AUTENTICACIÓN - TESTS COMPLETOS
@@ -11,7 +11,7 @@ POST {{host}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "thePrimo.adventure@time.cartoon",
+  "email": "thePrismo.adventure@time.cartoon",
   "password": "adventuretime"
 }
 

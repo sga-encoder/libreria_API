@@ -35,22 +35,28 @@ class UsersRepository(RepositoriesInterface[User]):
         self.__users = self.__file.read()
         
     def __search_id(self, id: str) -> int:
-        """Busca el índice de un usuario por su ID utilizando búsqueda binaria.
+        """Busca el índice de un usuario por su ID utilizando búsqueda binaria optimizada.
         
         Args:
             id (str): ID del usuario a buscar.
             
         Returns:
-            int: Índice del usuario en la lista, o -1 si no se encuentra.
+            int: Índice del usuario en la lista original, o -1 si no se encuentra.
         """
-        
         self.__refresh_users()
-        index = binary_search(
-            self.read_all(),
-            key=lambda user:user.get_id(),
-            item=User.from_search_api(id=id)
-        )
-        return  index
+        
+        # Crear diccionario para mapeo rápido: id -> índice en self.__users
+        id_to_index = {}
+        for i, user_dict in enumerate(self.__users):
+            user_id = user_dict.get('id')
+            if user_id:
+                id_to_index[user_id] = i
+        
+        # Búsqueda O(1) en diccionario
+        if id in id_to_index:
+            return id_to_index[id]
+        
+        return -1
 
     def create(self, json: dict):
         """Crea un nuevo usuario y lo agrega al repositorio.
@@ -71,7 +77,6 @@ class UsersRepository(RepositoriesInterface[User]):
         self.__file.append(instance.to_dict())
         self.__refresh_users()
         return instance
-    
 
     def read(self, id: str):
         """Lee un usuario por su ID.
@@ -82,10 +87,9 @@ class UsersRepository(RepositoriesInterface[User]):
         Returns:
             User or None: Instancia del usuario si se encuentra, None en caso contrario.
         """
-
         user = self.__search_id(id)
         if user == -1:
-            print("Usuario no encontrado.")
+            print("Usuario no encontrado. 1")
             return None
         instance = None
         if self.__role == PersonRole.ADMIN:
@@ -129,7 +133,7 @@ class UsersRepository(RepositoriesInterface[User]):
         """
         index = self.__search_id(id)
         if index == -1:
-            print("Usuario no encontrado.")
+            print("Usuario no encontrado. 2")
             return None
         
         instance = None
@@ -155,7 +159,7 @@ class UsersRepository(RepositoriesInterface[User]):
         """
         index = self.__search_id(id)
         if index == -1:
-            print("Usuario no encontrado.")
+            print("Usuario no encontrado. 3")
             return False
         self.__users.pop(index)
         self.__file.write(self.__users)
@@ -204,7 +208,7 @@ class UsersRepository(RepositoriesInterface[User]):
         """
         index = self.__search_id(id_user)
         if index == -1:
-            print("Usuario no encontrado.")
+            print("Usuario no encontrado. 4")
             return False
         
         # Obtener la instancia del usuario
@@ -237,7 +241,7 @@ class UsersRepository(RepositoriesInterface[User]):
         """
         index = self.__search_id(id_user)
         if index == -1:
-            print("Usuario no encontrado.")
+            print("Usuario no encontrado. 5")
             return False
         
         # Obtener la instancia del usuario
@@ -263,7 +267,7 @@ class UsersRepository(RepositoriesInterface[User]):
             return False
         
         # Eliminar el préstamo de la instancia
-        user.remove_loan(loan_to_remove)
+        user.delete_loan(loan_to_remove)
         
         # Actualizar en la caché interna
         self.__users[index] = user.to_dict()

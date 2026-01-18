@@ -1,90 +1,222 @@
 @host = http://localhost:8000/api/v1/loan
-@userToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmaW5uLmFkdmVudHVyZUB0aW1lLmNhcnRvb24iLCJyb2xlIjoiVVNFUiIsImV4cCI6MTc2NTMyMjcwN30.d6FBfo2XDgSyEPYvCV5yFs5hq7nUT9bJKj2qp7W59ZE
-@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0aGVQcmltby5hZHZlbnR1cmVAdGltZS5jYXJ0b29uIiwicm9sZSI6IkFETUlOIiwiZXhwIjoxNzY1MzIyNzA3fQ.d6FBfo2XDgSyEPYvCV5yFs5hq7nUT9bJKj2qp7W59ZE
+
+# Usuarios de /data/json
+@user01 = 17653216386410001
+@user02 = 17653218466160001
+@user03 = 17653362689770001
+
+# Libros de /data/json
+@book01 = 9780441172719
+@book02 = 9788401337208
+@book04 = 9780062316097
+@book05 = 9780345539434
+@book06 = 9780393609394
+@book08 = 9780132350884
+@book09 = 9780134494166
+@book10 = 9781593279509
+@book11 = 9781593276034
+@book12 = 9781569319017
+@book13 = 9781569319000
+@book14 = 9780553897845
+
+# IDs inexistentes para pruebas negativas
+@nonExistingLoanId = 99999999999999999
+@nonExistingBookId = 9999999999999
+@nonExistingUserId = 00000000000000000
+
 
 ### =============================================================================
-### PRÉSTAMOS (Loans) - CRUD Básico
+### 1)  Crear préstamo para tener ID para siguientes pruebas
 ### =============================================================================
 
-### Crear préstamo
-# Nota: user y book son emails/ISBN respectivamente
+### @name createLoan1
 POST {{host}}/
 Content-Type: application/json
 
 {
-  "user": "finn.adventure@time.cartoon",
-  "book": "9780743273565",
-  "loanDate": "2025-12-11T10:00:00"
+  "id_user": "{{user01}}",
+  "id_ISBN_book": "{{book01}}"
 }
 
-### Leer préstamo por ID
-GET {{host}}/17652233141580001
+### @name createLoan2
+POST {{host}}/
+Content-Type: application/json
 
-### Leer todos los préstamos
+{
+  "id_user": "{{user02}}",
+  "id_ISBN_book": "{{book02}}"
+}
+
+### @name createLoan3
+POST {{host}}/
+Content-Type: application/json
+
+{
+  "id_user": "{{user03}}",
+  "id_ISBN_book": "{{book05}}"
+}
+
+### @name createLoan4
+POST {{host}}/
+Content-Type: application/json
+
+{
+  "id_user": "{{user01}}",
+  "id_ISBN_book": "{{book04}}"
+}
+
+# =============================================================================
+# 2) aseline: leer todos los préstamos
+# =============================================================================
+### @name readAllBaseline
 GET {{host}}/
 
-### Actualizar préstamo (cambiar libro)
-PATCH {{host}}/17652233141580001
+# =============================================================================
+# 3) establesemos lo préstamo creado en el paso 1
+# =============================================================================
+
+  @loanId_New01 = 17682495836280001
+  @loanId_New02 = 17682495891830002
+  @loanId_New03 = 17682495915150003
+  @loanId_New04 = 17682495938710004
+
+
+# ============================================================================
+# 4) Leer el préstamo creado
+# ============================================================================
+### @name readCreatedLoan01
+GET {{host}}/{{loanId_New01}}
+
+### @name readCreatedLoan02
+GET {{host}}/{{loanId_New02}}
+
+### @name readCreatedLoan03
+GET {{host}}/{{loanId_New03}}
+
+### @name readCreatedLoan04
+GET {{host}}/{{loanId_New04}}
+
+
+# ============================================================================
+# 5 ) intentar crear prestamo con un libro ya prestado (debería fallar)
+# ============================================================================
+### @name createLoanWithBorrowedBook
+POST {{host}}/
 Content-Type: application/json
 
 {
-  "book": "9780451524935"
+  "id_user": "{{user02}}",
+  "id_ISBN_book": "{{book01}}"
 }
 
-### Eliminar préstamo (devolver libro)
-DELETE {{host}}/17652233141580001
-
-### =============================================================================
-### BOOKCASE - Gestión de ordenamiento de estanterías
-### =============================================================================
-
-### Obtener estado actual del BookCase
-GET {{host}}/bookcase/status
-
-### Configurar BookCase con algoritmo DEFICIENT
-POST {{host}}/bookcase/configure
+# =============================================================================
+# 6) intentar crear préstamo con usuario inexistente (debería fallar)
+# =============================================================================
+### @name createLoanWithInvalidUser
+POST {{host}}/
 Content-Type: application/json
 
 {
-  "algorithm_type": "DEFICIENT",
-  "weight_capacity": 10.0,
-  "capacity_stands": 5
+  "id_user": "{{nonExistingUserId}}",
+  "id_ISBN_book": "{{book06}}"
 }
 
-### Configurar BookCase con algoritmo OPTIMOUM
-POST {{host}}/bookcase/configure
+# ============================================================================
+# 7) intentar crear préstamo con libro inexistente (debería fallar)
+# ============================================================================
+### @name createLoanWithInvalidBook
+POST {{host}}/
 Content-Type: application/json
 
 {
-  "algorithm_type": "OPTIMOUM",
-  "weight_capacity": 15.0,
-  "capacity_stands": 8
+  "id_user": "{{user03}}",
+  "id_ISBN_book": "{{nonExistingBookId}}"
 }
 
-### Desactivar BookCase (préstamos sin ordenamiento)
-DELETE {{host}}/bookcase/disable
+# =============================================================================
+# 8) Actualizar préstamo: cambiar libro prestado
+# =============================================================================
 
-### Ejecutar organización manual (REQUIERE ADMIN)
-POST {{host}}/bookcase/organize
-Authorization: Bearer {{adminToken}}
+### @name updateLoanToCosmos
+PATCH {{host}}/{{loanId_New01}}
+Content-Type: application/json
 
-### =============================================================================
-### NOTAS IMPORTANTES
-### =============================================================================
+{
+  "id_ISBN_book": "{{book08}}"
+}
 
-# PRÉSTAMOS:
-# - user: Email del usuario registrado
-# - book: ISBN del libro en el inventario
-# - loanDate: Fecha y hora del préstamo en formato ISO 8601
+# > {%
+#   client.test("Update returns 200", function() {
+#     client.assert(response.status === 200, "Response status is not 200");
+#   });
+  
+#   client.test("Loan book was updated to Cosmos", function() {
+#     client.assert(response.body.data.id_ISBN_book === "{{book05}}", "Book ISBN was not updated");
+#   });
+  
+#   client.test("Updated book matches Cosmos ISBN", function() {
+#     client.assert(response.body.data.id_ISBN_book === "9780345539434", "Book was not updated to Cosmos");
+#   });
+# %}
 
-# BOOKCASE:
-# - algorithm_type: "DEFICIENT" o "OPTIMOUM"
-# - weight_capacity: Capacidad de peso en kg
-# - capacity_stands: Número de estantes disponibles
-# - La organización manual requiere token de administrador
+### @name verifyLoanUpdated
+GET {{host}}/{{loanId_New01}}
 
-# ALGORITMOS:
-# - DEFICIENT: Algoritmo de ordenamiento básico/deficiente
-# - OPTIMOUM: Algoritmo de ordenamiento óptimo
+> {%
+  client.test("Verify updated loan has correct book", function() {
+    client.assert(response.body.data.id_ISBN_book === "{{book05}}", "Book was not persisted correctly");
+  });
+%}
 
-# Para obtener tokens válidos, usar los endpoints de /auth/login
+# =============================================================================
+# 9) intertar actualizar préstamo a libro ya prestado (debería fallar)
+# =============================================================================
+### @name updateLoanToBorrowedBook
+PATCH {{host}}/{{loanId_New02}}
+Content-Type: application/json
+
+{
+  "id_ISBN_book": "{{book05}}"
+}
+
+
+
+# =============================================================================
+# 10) Leer todos los préstamos (debería incluir el actualizado)
+# =============================================================================
+### @name readAllAfterUpdate
+GET {{host}}/
+
+
+# =============================================================================
+# 11) Eliminar el préstamo creado (devolución)
+# =============================================================================
+### @name deleteLoan
+DELETE {{host}}/{{loanId_New01}}
+
+> {%
+  client.test("Delete returns 200", function() {
+    client.assert(response.status === 200, "Response status is not 200");
+  });
+  client.test("Delete data is true", function() {
+    client.assert(response.body.data === true, "Delete operation did not return true");
+  });
+%}
+
+# =============================================================================
+# 12) Intentar leer el préstamo eliminado (debería fallar)
+# =============================================================================
+### @name readDeletedLoan
+GET {{host}}/{{loanId_New01}}
+
+# =============================================================================
+# 13) Leer todos los préstamos (debería no incluir el eliminado)
+# =============================================================================
+### @name readAllAfterDelete
+GET {{host}}/
+
+# =============================================================================
+# 14) Intentar eliminar préstamo inexistente (debería fallar)
+# =============================================================================
+### @name deleteNonExistingLoan
+DELETE {{host}}/{{nonExistingLoanId}}

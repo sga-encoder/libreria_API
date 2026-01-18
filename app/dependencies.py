@@ -2,7 +2,7 @@ from fastapi import Depends, HTTPException, status
 from jose import JWTError, jwt
 import logging
 from app.core import settings, oauth2_scheme
-from app.domain.services import UserService
+from app.domain.services import UserService, InventoryService
 from app.domain.models.enums import  PersonRole
 from app.domain.models import User
 
@@ -12,6 +12,16 @@ logging.basicConfig(level=logging.DEBUG)
 
 user_service = UserService(settings.DATA_PATH_USERS)
 admin_service = UserService(settings.DATA_PATH_ADMINS, role=PersonRole.ADMIN)
+inventory_service = InventoryService(settings.DATA_PATH_INVENTARY)
+
+def get_user_service() -> UserService:
+    return user_service
+
+def get_admin_service() -> UserService:
+    return admin_service
+
+def get_inventory_service() -> InventoryService:
+    return inventory_service
 
 oauth2_scheme = oauth2_scheme  # reexport si quiere
 
@@ -25,13 +35,13 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido")
     
     # Buscar en usuarios normales
-    users = user_service.get_users_all() or []
+    users = user_service.get_all() or []
     for u in users:
         if u.get_email() == username:
             return u
     
     # Buscar en admins si no lo encontró en usuarios
-    admins = admin_service.get_users_all() or []
+    admins = admin_service.get_all() or []
     for a in admins:
         if a.get_email() == username:
             return a
@@ -48,7 +58,7 @@ def get_current_admin(token: str = Depends(oauth2_scheme)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token inválido")
     
     # Buscar SOLO en admins
-    admins = admin_service.get_users_all() or []
+    admins = admin_service.get_all() or []
     for admin in admins:
         if admin.get_email() == username:
             return admin
