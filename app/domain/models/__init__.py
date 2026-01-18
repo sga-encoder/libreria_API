@@ -6,4 +6,4 @@ from .book import Book
 from .bookcase import BookCase
 from .bookshelf import BookShelf
 
-__all__ = ['enums', 'Person', 'User', 'Loan', 'Book', 'BookCase', 'BookShelf']
+__all__ = ['enums', 'Person', 'User', 'Loan', 'Book', 'BookCase', 'BookShelf', 'exceptions']

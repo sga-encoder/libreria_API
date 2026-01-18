@@ -7,6 +7,7 @@ con validaciones básicas y manejo seguro de contraseñas.
 import re
 
 from .enums import PersonRole
+from app.domain.exceptions import ValidationException
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.utils import generate_id
 
@@ -40,12 +41,14 @@ class Person:
         Args:
             fullName (str): Nombre completo de la persona.
             email (str): Correo electrónico de la persona.
-            password (str): Contraseña en texto plano.
+            password (str): Contraseña en texto plano o hasheada.
             role (PersonRole): Rol de la persona.
             id (str, optional): Identificador único. Defaults to None.
+            password_is_hashed (bool, optional): Si la contraseña ya está hasheada. Defaults to False.
 
         Raises:
-            ValueError: Si los argumentos no cumplen las validaciones.
+            ValidationException: Si fullName, email o password no cumplen las validaciones.
+            ValidationException: Si role no es una instancia de PersonRole.
         """
         self.__set_id(id)
         self.set_fullName(fullName)
@@ -61,15 +64,29 @@ class Person:
         """Crea una instancia de Person a partir de un diccionario.
 
         Args:
-            data (dict): Diccionario con las claves 'fullName', 'email', 'password', 'role' y 'id' (opcional).
+            data (dict): Diccionario con las claves 'fullName', 'email', 'password' y 'id' (opcional).
+            role (PersonRole): Rol de la persona. Defaults to PersonRole.USER.
+            password_is_hashed (bool): Si la contraseña ya está hasheada. Defaults to True.
 
         Returns:
             Person: Nueva instancia de Person.
 
         Raises:
-            KeyError: Si falta alguna clave requerida o el role no es válido.
-            ValueError: Si los valores no cumplen las validaciones.
+            ValidationException: Si data no es un diccionario o falta alguna clave requerida.
+            ValidationException: Si los valores no cumplen las validaciones.
         """
+        if not isinstance(data, dict):
+            raise ValidationException("Los datos deben ser un diccionario válido")
+        
+        # Validar campos requeridos
+        required_fields = ["fullName", "email", "password"]
+        missing_fields = [field for field in required_fields if not data.get(field)]
+        
+        if missing_fields:
+            raise ValidationException(
+                f"Faltan campos requeridos: {', '.join(missing_fields)}"
+            )
+        
         return cls(
             fullName=data.get("fullName"),
             email=data.get("email"),
@@ -170,16 +187,29 @@ class Person:
             fullName (str): El nombre completo a asignar.
 
         Raises:
-            ValueError: Si no cumple las reglas de validación.
+            ValidationException: Si fullName es None, vacío o no cumple las reglas de longitud.
         """
-        if not fullName or not fullName.strip():
-            raise ValueError("El nombre completo no puede estar vacío.")
-        if len(fullName) < 3:
-            raise ValueError("El nombre completo debe tener al menos 3 caracteres.")
-        if len(fullName) > 50:
-            raise ValueError("El nombre completo no puede exceder los 50 caracteres.")
+        if not fullName or not isinstance(fullName, str):
+            raise ValidationException(
+                f"El nombre completo debe ser una cadena no vacía, recibido: {type(fullName).__name__}"
+            )
+        
+        fullName_stripped = fullName.strip()
+        
+        if not fullName_stripped:
+            raise ValidationException("El nombre completo no puede estar vacío o contener solo espacios")
+        
+        if len(fullName_stripped) < 3:
+            raise ValidationException(
+                f"El nombre completo debe tener al menos 3 caracteres, recibido: {len(fullName_stripped)}"
+            )
+        
+        if len(fullName_stripped) > 50:
+            raise ValidationException(
+                f"El nombre completo no puede exceder los 50 caracteres, recibido: {len(fullName_stripped)}"
+            )
 
-        self._fullName = fullName
+        self._fullName = fullName_stripped
 
     def set_email(self, email: str):
         """Valida y asigna el correo electrónico.
@@ -188,21 +218,53 @@ class Person:
             email (str): El correo electrónico a asignar.
 
         Raises:
-            ValueError: Si no es un email válido.
+            ValidationException: Si email es None, vacío o no tiene formato válido.
         """
-        pattern = re.compile(r"^[^@]+@[^@]+\.[^@]+$")
+        if not email or not isinstance(email, str):
+            raise ValidationException(
+                f"El email debe ser una cadena no vacía, recibido: {type(email).__name__}"
+            )
+        
+        email_stripped = email.strip()
+        
+        if not email_stripped:
+            raise ValidationException("El email no puede estar vacío o contener solo espacios")
+        
+        # Patrón más estricto para validación de email
+        pattern = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
 
-        if not pattern.match(email):
-            raise ValueError("El email proporcionado no es válido.")
+        if not pattern.match(email_stripped):
+            raise ValidationException(
+                f"El email '{email_stripped}' no tiene un formato válido. "
+                f"Debe ser del tipo 'usuario@dominio.com'"
+            )
 
-        self._email = email
+        self._email = email_stripped.lower()  # Normalizar a minúsculas
 
     def set_password(self, password: str):
         """Hashea la contraseña y la asigna.
 
         Args:
             password (str): La contraseña en texto plano.
+            
+        Raises:
+            ValidationException: Si password es None, vacío o muy corta.
         """
+        if not password or not isinstance(password, str):
+            raise ValidationException(
+                f"La contraseña debe ser una cadena no vacía, recibido: {type(password).__name__}"
+            )
+        
+        if len(password) < 6:
+            raise ValidationException(
+                f"La contraseña debe tener al menos 6 caracteres, recibido: {len(password)}"
+            )
+        
+        if len(password) > 100:
+            raise ValidationException(
+                f"La contraseña no puede exceder los 100 caracteres, recibido: {len(password)}"
+            )
+        
         self._password = generate_password_hash(password)
 
     def __set_role(self, role: PersonRole):
@@ -210,20 +272,34 @@ class Person:
 
         Args:
             role (PersonRole): El rol a asignar.
+            
+        Raises:
+            ValidationException: Si role no es una instancia de PersonRole.
         """
         if not isinstance(role, PersonRole):
-            self._role = PersonRole.USER
-        else:
-            self._role = role
+            raise ValidationException(
+                f"El rol debe ser una instancia de PersonRole, recibido: {type(role).__name__}"
+            )
+        
+        self._role = role
             
     def add_historial(self, item: str):
         """Agrega un ítem al historial de la persona.
 
         Args:
             item (str): El ítem a agregar al historial.
+            
+        Raises:
+            ValidationException: Si item no es una cadena válida.
         """
+        if not item or not isinstance(item, str):
+            raise ValidationException(
+                f"El ítem del historial debe ser una cadena no vacía, recibido: {type(item).__name__}"
+            )
+        
         if not hasattr(self, '_historial'):
             self._historial = []
+        
         self._historial.append(item)
 
     def verify_password(self, password: str) -> bool:
@@ -234,7 +310,15 @@ class Person:
 
         Returns:
             bool: True si coincide, False en caso contrario.
+            
+        Raises:
+            ValidationException: Si password es None o vacío.
         """
+        if not password or not isinstance(password, str):
+            raise ValidationException(
+                f"La contraseña a verificar debe ser una cadena no vacía, recibido: {type(password).__name__}"
+            )
+        
         return check_password_hash(self._password, password)
 
     def change_password(self, current_password: str, new_password: str) -> bool:
@@ -245,10 +329,33 @@ class Person:
             new_password (str): La nueva contraseña en texto plano.
 
         Returns:
-            bool: True si el cambio fue exitoso, False si la verificación falló.
+            bool: True si el cambio fue exitoso.
+            
+        Raises:
+            ValidationException: Si current_password o new_password son inválidos.
+            ValidationException: Si la contraseña actual no coincide.
+            ValidationException: Si la nueva contraseña es igual a la actual.
         """
+        if not current_password or not isinstance(current_password, str):
+            raise ValidationException(
+                "La contraseña actual debe ser una cadena no vacía"
+            )
+        
+        if not new_password or not isinstance(new_password, str):
+            raise ValidationException(
+                "La nueva contraseña debe ser una cadena no vacía"
+            )
+        
+        if current_password == new_password:
+            raise ValidationException(
+                "La nueva contraseña debe ser diferente a la contraseña actual"
+            )
+        
         if not self.verify_password(current_password):
-            return False
+            raise ValidationException(
+                "La contraseña actual proporcionada es incorrecta"
+            )
+        
         self.set_password(new_password)
         return True
 
@@ -275,20 +382,48 @@ class Person:
                          Para actualizar la contraseña, debe incluir 'password' (actual) y 'new_password'.
 
         Raises:
-            ValueError: Si los valores no son válidos o falta la contraseña actual para cambiarla.
+            ValidationException: Si data no es un diccionario.
+            ValidationException: Si los valores no son válidos.
+            ValidationException: Si se intenta cambiar contraseña sin proporcionar la actual.
+            ValidationException: Si el rol proporcionado no es válido.
         """
+        if not isinstance(data, dict):
+            raise ValidationException(
+                f"Los datos deben ser un diccionario, recibido: {type(data).__name__}"
+            )
+        
+        if not data:
+            raise ValidationException("No hay datos para actualizar")
+        
         if "fullName" in data:
             self.set_fullName(data["fullName"])
+        
         if "email" in data:
             self.set_email(data["email"])
+        
         if "new_password" in data:
-            if "password" in data:
-                self.change_password(data["password"], data["new_password"])
-            else:
-                raise ValueError("necesitas la contraseña anterior para actualizar la contraseña")
+            if "password" not in data:
+                raise ValidationException(
+                    "Necesitas proporcionar la contraseña actual ('password') "
+                    "para actualizar a la nueva contraseña ('new_password')"
+                )
+            self.change_password(data["password"], data["new_password"])
+        
         if "role" in data:
-            self.__set_role(PersonRole[data["role"]])
+            try:
+                role_enum = PersonRole[data["role"]]
+                self.__set_role(role_enum)
+            except KeyError:
+                valid_roles = ", ".join([r.name for r in PersonRole])
+                raise ValidationException(
+                    f"Rol '{data['role']}' no válido. Roles válidos: {valid_roles}"
+                )
+        
         if "historial" in data:
+            if not isinstance(data["historial"], list):
+                raise ValidationException(
+                    f"El historial debe ser una lista, recibido: {type(data['historial']).__name__}"
+                )
             self._historial = data["historial"]
 
     def __str__(self):
