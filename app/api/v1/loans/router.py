@@ -14,6 +14,7 @@ loan_router = APIRouter(
 # Inicializar servicio
 loan_api_service = LoanAPIService(
     settings.DATA_PATH_LOANS_RECORDS, 
+    settings.DATA_PATH_CURRENT_LOANS,
     settings.DATA_PATH_INVENTARY, 
     settings.DATA_PATH_USERS
 )
@@ -25,10 +26,10 @@ try:
         weight_capacity=10.0,
         capacity_stands=5
     )
-    print("✓ BookCase inicializado con algoritmo DEFICIENT")
+    print("[OK] BookCase inicializado con algoritmo DEFICIENT")
 except Exception as e:
-    print(f"⚠ No se pudo inicializar BookCase: {e}")
-    print("  Los préstamos funcionarán sin ordenamiento de estanterías")
+    print(f"[WARN] No se pudo inicializar BookCase: {e}")
+    print("  Los prestamos funcionaran sin ordenamiento de estanterias")
 
 @loan_router.post("/")
 def create(loan: LoanCreate):
@@ -41,7 +42,7 @@ def create(loan: LoanCreate):
     Retorna:
     - dict: Mensaje de éxito y representación del préstamo creado.
     """
-    data = loan_api_service.create_loan(loan.user, loan.book)
+    data = loan_api_service.create(loan)
     return {
         "message": 'Préstamo creado satisfactoriamente',
         "data": data.to_dict() if hasattr(data, 'to_dict') else str(data)
@@ -61,7 +62,7 @@ def read(id: str):
     data = loan_api_service.read_loan(id)
     return {
         "message": f"Préstamo {id} leído satisfactoriamente",
-        "data": data.to_dict() if hasattr(data, 'to_dict') else str(data)
+        "data": data.to_dict_with_objects() if hasattr(data, 'to_dict') else str(data)
     }
 
 @loan_router.get("/")
@@ -75,7 +76,7 @@ def read_all():
     data = loan_api_service.read_all_loans()
     return {
         "message": "Se leyeron satisfactoriamente todos los préstamos", 
-        "data": [loan.to_dict() if hasattr(loan, 'to_dict') else str(loan) for loan in data]
+        "data": [loan.to_dict_with_objects() if hasattr(loan, 'to_dict') else str(loan) for loan in data]
     }
 
 @loan_router.patch("/{id}")
@@ -90,10 +91,10 @@ def update(id: str, loan: LoanUpdate):
     Retorna:
     - dict: Mensaje de éxito y representación del nuevo préstamo.
     """
-    data = loan_api_service.update_loan(id, loan.book)
+    data = loan_api_service.update(id, loan)
     return {
         "message": f"Préstamo {id} actualizado satisfactoriamente", 
-        "data": data.to_dict() if hasattr(data, 'to_dict') else str(data)
+        "data": data.to_dict_with_objects() if hasattr(data, 'to_dict') else str(data)
     }
 
 @loan_router.delete("/{id}")
@@ -107,7 +108,7 @@ def delete(id: str):
     Retorna:
     - dict: Mensaje de éxito y un booleano indicando la operación.
     """
-    result = loan_api_service.delete_loan(id)
+    result = loan_api_service.delete(id)
     return {
         "message": f"Préstamo {id} eliminado satisfactoriamente",
         "data": result

@@ -4,6 +4,8 @@ from app.domain.models import Loan, BookCase, BookShelf
 from app.domain.models.enums import TypeOrdering
 from app.domain.structures import Queue
 from typing import Tuple, Optional
+from pydantic import BaseModel
+
 
 """Módulo de servicios para la API de préstamos.
 
@@ -27,7 +29,7 @@ class LoanAPIService:
         __bookcase (Optional[BookCase]): estantería para organizar libros según algoritmo.
     """
     
-    def __init__(self, loan_url: str, inventory_url: str, user_url: str, bookcase: Optional[BookCase] = None) -> None:
+    def __init__(self, url_loans_records: str, url_current_loans: str, inventory_url: str, user_url: str, bookcase: Optional[BookCase] = None) -> None:
         """Inicializa el servicio con las URLs de los repositorios y bookcase opcional.
 
         Args:
@@ -40,9 +42,9 @@ class LoanAPIService:
         self.__inventory_service = InventoryService(inventory_url)
         self.__user_service = UserService(user_url)
         reservations_queue: Queue[Tuple] = Queue()
-        users = self.__user_service.get_users_all() or []
+        users = self.__user_service.get_all() or []
         self.__bookcase = bookcase
-        self.__loan_service = LoanService(loan_url, reservations_queue, users, self.__inventory_service, self.__user_service, bookcase)
+        self.__loan_service = LoanService(url_loans_records, url_current_loans ,  self.__inventory_service, self.__user_service, bookcase)
     
     def set_bookcase(self, bookcase: BookCase) -> None:
         """Establece o actualiza la estantería para aplicar algoritmos de ordenamiento.
@@ -224,7 +226,7 @@ class LoanAPIService:
         
         return result
     
-    def create_loan(self, user_email: str, book_id: str) -> Loan:
+    def create(self, json: BaseModel) -> Loan:
         """Crea un nuevo préstamo para un usuario y un libro.
 
         Busca el usuario por email, obtiene el libro del inventario y crea
@@ -242,39 +244,22 @@ class LoanAPIService:
                           500 si ocurre un error interno.
         """
         try:
-            # Buscar el usuario
-            user = None
-            users = self.__user_service.get_users_all()
-            if users is not None:
-                for u in users:
-                    if u.get_email() == user_email:
-                        user = u
-                        break
-            
-            if user is None:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
-            
-            # Obtener el libro del inventario
-            book = self.__inventory_service.get_book_by_id(book_id)
-            if book is None:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Libro no encontrado")
-            
+            data = json.model_dump()
             # Crear el préstamo
-            loan = self.__loan_service.create_loan(user, book)
-            if loan is None:
+            result = self.__loan_service.create(data)
+            if result is None:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail="No se pudo crear el préstamo (libro prestado o error)"
                 )
-            
-            return loan
+            return result
         except HTTPException:
             raise
         except Exception as e:
             print(f"Error creating loan: {e}")
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error creando préstamo")
     
-    def read_loan(self, loan_id: str) -> Loan | None:
+    def read_loan(self, id: str) -> Loan | None:
         """Obtiene un préstamo por su ID.
 
         Args:
@@ -287,7 +272,7 @@ class LoanAPIService:
             HTTPException: 404 si no se encuentra, 500 en errores internos.
         """
         try:
-            loan = self.__loan_service.get_loan_by_id(loan_id)
+            loan = self.__loan_service.get_by_id(id)
             if loan is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Préstamo no encontrado")
             return loan
@@ -307,7 +292,7 @@ class LoanAPIService:
             HTTPException: 404 si no hay préstamos, 500 en errores internos.
         """
         try:
-            loans = self.__loan_service.read_all_loans()
+            loans = self.__loan_service.get_all()
             if loans is None or len(loans) == 0:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No hay préstamos registrados")
             return loans
@@ -317,7 +302,7 @@ class LoanAPIService:
             print(f"Error reading all loans: {e}")
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error leyendo préstamos")
     
-    def update_loan(self, loan_id: str, new_book_id: str) -> Loan | None:
+    def update(self, id: str, json: BaseModel) -> Loan | None:
         """Actualiza un préstamo existente reemplazando el libro.
 
         Obtiene el nuevo libro del inventario y delega la actualización
@@ -335,13 +320,9 @@ class LoanAPIService:
             HTTPException: 404 si no encuentra el préstamo o libro, 500 en errores internos.
         """
         try:
-            # Obtener el nuevo libro
-            new_book = self.__inventory_service.get_book_by_id(new_book_id)
-            if new_book is None:
-                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Nuevo libro no encontrado")
-            
             # Actualizar el préstamo
-            loan = self.__loan_service.update_loan(loan_id, new_book)
+            data = json.model_dump()
+            loan = self.__loan_service.update(id, data)
             if loan is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No se pudo actualizar el préstamo")
             
@@ -352,7 +333,7 @@ class LoanAPIService:
             print(f"Error updating loan: {e}")
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error actualizando préstamo")
     
-    def delete_loan(self, loan_id: str) -> bool:
+    def delete(self, loan_id: str) -> bool:
         """Elimina un préstamo y reintegra el libro al inventario.
 
         Delega la eliminación al LoanService, que se encarga de:
@@ -371,7 +352,7 @@ class LoanAPIService:
             HTTPException: 404 si no se encuentra el préstamo, 500 en errores internos.
         """
         try:
-            result = self.__loan_service.delete_loan(loan_id)
+            result = self.__loan_service.delete(loan_id)
             if not result:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Préstamo no encontrado para eliminar")
             return result

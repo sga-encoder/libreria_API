@@ -23,8 +23,8 @@ class AuthAPIService:
 
     def __authenticate_user(self, email: str, password: str) -> Optional[User]:
         """Buscar usuario por email y verificar contraseña."""
-        users = self.user_service.get_users_all() or []
-        admins = self.admin_service.get_users_all() or []
+        users = self.user_service.get_all() or []
+        admins = self.admin_service.get_all() or []
         all_people = users + admins
         
         for user in all_people:

@@ -54,7 +54,7 @@ class UserAPIService:
             HTTPException: Si el usuario no se encuentra o hay error.
         """
         try:
-            result = self.__user_service.get_user_by_id(id)
+            result = self.__user_service.get_by_id(id)
             if result is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado")
             return result
@@ -72,7 +72,7 @@ class UserAPIService:
             HTTPException: Si no hay usuarios o hay error.
         """
         try:
-            result = self.__user_service.get_users_all()
+            result = self.__user_service.get_all()
             if result is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No hay usuarios disponibles")
             return result
@@ -95,7 +95,7 @@ class UserAPIService:
         """
         try:
             data = json.model_dump(exclude_unset=True)
-            result = self.__user_service.update_user(id, data)
+            result = self.__user_service.update(id, data)
             if result is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado para actualizar")
             return result
@@ -116,7 +116,7 @@ class UserAPIService:
             HTTPException: Si el usuario no se encuentra o hay error.
         """
         try:
-            result = self.__user_service.delete_user(id)
+            result = self.__user_service.delete(id)
             if not result:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado para eliminar")
             return result

@@ -47,7 +47,7 @@ class BookAPIService:
         """
         try:
             data = json.model_dump()
-            result = self.__inventary_service.add_book(data)
+            result = self.__inventary_service.add(data)
             return result
         except Exception as e:
             print(f"Error creating book: {e}")
@@ -71,7 +71,7 @@ class BookAPIService:
         try:
             books = search_book(f'isbn:{id_IBSN}')
             book_data = books[0]
-            result = self.__inventary_service.add_book(book_data)
+            result = self.__inventary_service.add(book_data)
             return result
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found in external API")
@@ -89,7 +89,7 @@ class BookAPIService:
             HTTPException: 404 si no se encuentra, 500 en errores internos.
         """
         try:
-            result = self.__inventary_service.get_book_by_id(id_IBSN)
+            result = self.__inventary_service.get_by_id(id_IBSN)
             if result is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
             return result
@@ -106,10 +106,10 @@ class BookAPIService:
             HTTPException: 404 si no hay libros, 500 en errores internos.
         """
         try:
-            books_stack = self.__inventary_service.get_inventary()
+            books_stack = self.__inventary_service.get_all_not_borrowed()
             if books_stack is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No books found")
-            return books_stack.to_list()
+            return books_stack
         except Exception as e:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error reading all books")
         
@@ -131,7 +131,7 @@ class BookAPIService:
         """
         try:
             data = json.model_dump(exclude_unset=True)
-            book = self.__inventary_service.update_book(id_IBSN, data)
+            book = self.__inventary_service.update(id_IBSN, data)
             if book is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found for update")
             return book
@@ -151,7 +151,7 @@ class BookAPIService:
             HTTPException: 404 si no se encuentra el libro, 500 en errores internos.
         """
         try:
-            result = self.__inventary_service.delete_book(id_IBSN)
+            result = self.__inventary_service.delete(id_IBSN)
             if not result:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found for deletion")
             return result

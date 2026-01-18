@@ -61,7 +61,7 @@ class AdminAPIService:
             HTTPException: Si el administrador no se encuentra o hay error.
         """
         try:
-            result = self.__admin_service.get_user_by_id(id)
+            result = self.__admin_service.get_by_id(id)
             if result is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Administrador no encontrado")
             return result
@@ -79,7 +79,7 @@ class AdminAPIService:
             HTTPException: Si no hay administradores o hay error.
         """
         try:
-            result = self.__admin_service.get_users_all()
+            result = self.__admin_service.get_all()
             if result is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No hay administradores disponibles")
             return result
@@ -102,7 +102,7 @@ class AdminAPIService:
         """
         try:
             data = json.model_dump(exclude_unset=True)
-            result = self.__admin_service.update_user(id, data)
+            result = self.__admin_service.update(id, data)
             if result is None:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Administrador no encontrado para actualizar")
             return result
@@ -123,7 +123,7 @@ class AdminAPIService:
             HTTPException: Si el administrador no se encuentra o hay error.
         """
         try:
-            result = self.__admin_service.delete_user(id)
+            result = self.__admin_service.delete(id)
             if not result:
                 raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Administrador no encontrado para eliminar")
             return result
