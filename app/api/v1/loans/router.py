@@ -3,25 +3,32 @@ from . import LoanCreate, LoanUpdate
 from .schemas import BookCaseCreate, BookCaseInfo, TypeOrderingEnum
 from .services import LoanAPIService
 from app.core import settings
-from app.dependencies import get_current_user, get_current_admin
+from app.dependencies import get_current_user, get_current_admin, get_user_service
 from app.domain.models.enums import TypeOrdering
+from app.domain.services import UserService
 
 loan_router = APIRouter(
     prefix="/api/v1/loan",
     tags=["loan"]
 )
 
-# Inicializar servicio
-loan_api_service = LoanAPIService(
-    settings.DATA_PATH_LOANS_RECORDS, 
-    settings.DATA_PATH_CURRENT_LOANS,
-    settings.DATA_PATH_INVENTARY, 
-    settings.DATA_PATH_USERS
-)
+def get_loan_api_service(
+    user_service: UserService = Depends(get_user_service),
+    # Si tienes InventoryService, también inyéctalo
+    # inventory_service = Depends(get_inventory_service)
+) -> LoanAPIService:
+    """Inyecta LoanAPIService con servicios de usuario."""
+    return LoanAPIService(
+        settings.DATA_PATH_LOANS_RECORDS, 
+        settings.DATA_PATH_CURRENT_LOANS,
+        settings.DATA_PATH_INVENTARY, 
+        user_service=user_service,
+    )
+
 
 # Crear BookCase con algoritmo DEFICIENT por defecto
 try:
-    loan_api_service.create_bookcase_with_algorithm(
+    get_loan_api_service().create_bookcase_with_algorithm(
         algorithm_type=TypeOrdering.DEFICIENT,
         weight_capacity=10.0,
         capacity_stands=5
@@ -32,7 +39,7 @@ except Exception as e:
     print("  Los prestamos funcionaran sin ordenamiento de estanterias")
 
 @loan_router.post("/")
-def create(loan: LoanCreate):
+def create(loan: LoanCreate, loan_api_service: LoanAPIService = Depends(get_loan_api_service)):
     """
     Crear un nuevo préstamo usando los datos proporcionados.
 
@@ -49,7 +56,7 @@ def create(loan: LoanCreate):
     }
 
 @loan_router.get("/{id}")
-def read(id: str):
+def read(id: str, loan_api_service: LoanAPIService = Depends(get_loan_api_service)):
     """
     Obtener los detalles de un préstamo por su ID.
 
@@ -66,7 +73,7 @@ def read(id: str):
     }
 
 @loan_router.get("/")
-def read_all():
+def read_all(loan_api_service: LoanAPIService = Depends(get_loan_api_service)):
     """
     Obtener la lista de todos los préstamos registrados.
 
@@ -80,7 +87,7 @@ def read_all():
     }
 
 @loan_router.patch("/{id}")
-def update(id: str, loan: LoanUpdate):
+def update(id: str, loan: LoanUpdate, loan_api_service: LoanAPIService = Depends(get_loan_api_service)):
     """
     Actualizar un préstamo existente reemplazando el libro.
 
@@ -98,7 +105,7 @@ def update(id: str, loan: LoanUpdate):
     }
 
 @loan_router.delete("/{id}")
-def delete(id: str):
+def delete(id: str, loan_api_service: LoanAPIService = Depends(get_loan_api_service)):
     """
     Eliminar un préstamo identificado por su ID.
 
@@ -116,7 +123,7 @@ def delete(id: str):
 
 
 @loan_router.get("/reservations/queue")
-def get_reservations_queue():
+def get_reservations_queue(loan_api_service: LoanAPIService = Depends(get_loan_api_service)):
     """
     Obtener la lista de espera (reservation queue) de libros.
     
@@ -155,7 +162,7 @@ def get_reservations_queue():
 # ════════════════════════════════════════════════════════════════════════════
 
 @loan_router.get("/bookcase/status")
-def get_bookcase_status():
+def get_bookcase_status(loan_api_service: LoanAPIService = Depends(get_loan_api_service)):
     """
     Obtener el estado actual del BookCase.
     
@@ -197,7 +204,7 @@ def get_bookcase_status():
 
 
 @loan_router.post("/bookcase/configure")
-def configure_bookcase(config: BookCaseCreate):
+def configure_bookcase(config: BookCaseCreate, loan_api_service: LoanAPIService = Depends(get_loan_api_service)):
     """
     Crear o actualizar la configuración del BookCase.
     
@@ -244,7 +251,7 @@ def configure_bookcase(config: BookCaseCreate):
 
 
 @loan_router.delete("/bookcase/disable")
-def disable_bookcase():
+def disable_bookcase(loan_api_service: LoanAPIService = Depends(get_loan_api_service)):
     """
     Desactivar el BookCase (sin ordenamiento de estanterías).
     
@@ -265,7 +272,7 @@ def disable_bookcase():
 
 
 @loan_router.post("/bookcase/organize", dependencies=[Depends(get_current_admin)])
-def organize_bookcase():
+def organize_bookcase(loan_api_service: LoanAPIService = Depends(get_loan_api_service)):
     """
     Ejecutar manualmente el algoritmo de organización configurado.
     

@@ -29,7 +29,7 @@ class LoanAPIService:
         __bookcase (Optional[BookCase]): estantería para organizar libros según algoritmo.
     """
     
-    def __init__(self, url_loans_records: str, url_current_loans: str, inventory_url: str, user_url: str, bookcase: Optional[BookCase] = None) -> None:
+    def __init__(self, url_loans_records: str, url_current_loans: str, inventory_url: str, user_service: UserService, bookcase: Optional[BookCase] = None) -> None:
         """Inicializa el servicio con las URLs de los repositorios y bookcase opcional.
 
         Args:
@@ -40,7 +40,7 @@ class LoanAPIService:
                 Si no se proporciona, se puede establecer posteriormente con set_bookcase().
         """
         self.__inventory_service = InventoryService(inventory_url)
-        self.__user_service = UserService(user_url)
+        self.__user_service = user_service
         reservations_queue: Queue[Tuple] = Queue()
         users = self.__user_service.get_all() or []
         self.__bookcase = bookcase

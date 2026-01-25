@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING
 from .person import Person
-from .enums import PersonRole
+from ..enums import PersonRole
 from app.domain.exceptions import ValidationException
 
 if TYPE_CHECKING:
-    from .loan import Loan
+    from ..loan import Loan
     
 class User(Person):
     __loans: list

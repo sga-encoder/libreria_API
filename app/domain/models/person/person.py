@@ -6,7 +6,7 @@ con validaciones básicas y manejo seguro de contraseñas.
 
 import re
 
-from .enums import PersonRole
+from ..enums import PersonRole
 from app.domain.exceptions import ValidationException
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.utils import generate_id
@@ -75,6 +75,7 @@ class Person:
             ValidationException: Si data no es un diccionario o falta alguna clave requerida.
             ValidationException: Si los valores no cumplen las validaciones.
         """
+        # print(data)
         if not isinstance(data, dict):
             raise ValidationException("Los datos deben ser un diccionario válido")
         
@@ -225,21 +226,16 @@ class Person:
                 f"El email debe ser una cadena no vacía, recibido: {type(email).__name__}"
             )
         
-        email_stripped = email.strip()
-        
-        if not email_stripped:
-            raise ValidationException("El email no puede estar vacío o contener solo espacios")
-        
         # Patrón más estricto para validación de email
         pattern = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
 
-        if not pattern.match(email_stripped):
+        if not pattern.match(email):
             raise ValidationException(
-                f"El email '{email_stripped}' no tiene un formato válido. "
+                f"El email '{email}' no tiene un formato válido. "
                 f"Debe ser del tipo 'usuario@dominio.com'"
             )
 
-        self._email = email_stripped.lower()  # Normalizar a minúsculas
+        self._email = email # Normalizar a minúsculas
 
     def set_password(self, password: str):
         """Hashea la contraseña y la asigna.

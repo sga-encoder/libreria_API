@@ -1,8 +1,17 @@
 @host = http://localhost:8000/api/v1/user
+
+@hostAdmin = http://localhost:8000/api/v1/admin
 @hostAuth = http://localhost:8000/api/v1/auth
-@UserToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdGFyY2h5LmFkdmVudHVyZUB0aW1lLmNhcnRvb24iLCJyb2xlIjoiVVNFUiIsImV4cCI6MTc2NTMzOTU0NH0.FE-CfZGPVrH5j2nLtiGiGC89fmJ6hYrDS8DZrJBHESU
+
+
+# =============================================================================
+#  Login  (Users)
+# =============================================================================
 
 ### Login  Starchy(JSON)
+@TokenStarchy = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdGFyY2h5LmFkdmVudHVyZUB0aW1lLmNhcnRvb24iLCJyb2xlIjoiVVNFUiIsImV4cCI6Nzc2OTM3MTYzOX0.ZHtASbZkPZNAOmtzvQo4E-OdEOjYuXn6vOHBjn6aobc
+
+@IDStarchy = 17692977443180001
 POST {{hostAuth}}/login
 Content-Type: application/json
 
@@ -11,7 +20,12 @@ Content-Type: application/json
   "password": "adventuretime"
 }
 
+
+
 ### Login Dr Donut (JSON) 
+@TokenDrDonut = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJEckRvbnV0LmFkdmVudHVyZUB0aW1lLmNhcnRvb24iLCJyb2xlIjoiVVNFUiIsImV4cCI6Nzc2OTM3MTU1OH0.QOW2zHFFaC0dtzequx0Jplocy9LFQZb46iU_jRUWPdQ
+
+@IDDrDonut = 17692981449200003
 POST {{hostAuth}}/login
 Content-Type: application/json
 
@@ -20,7 +34,12 @@ Content-Type: application/json
   "password": "adventuretime"
 }
 
-### Login Crunchy (JSON) 
+
+
+### Login Crunchy (JSON)
+@TokenCrunchy = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjcnVuY2h5LmFkdmVudHVyZUB0aW1lLmNhcnRvb24iLCJyb2xlIjoiVVNFUiIsImV4cCI6Nzc2OTM3MTU5NH0.tQTiiwB6U-dyilUSoF464dPYm3spiwox_KZhrBxpX0Q
+
+@IDCrunchy = 17692981576070006
 POST {{hostAuth}}/login
 Content-Type: application/json
 
@@ -29,13 +48,103 @@ Content-Type: application/json
   "password": "adventuretime"
 }
 
-### Verificar sesión de admin
-GET {{hostAuth}}/me
-Authorization: Bearer {{UserToken}}
 
-### =============================================================================
-### USUARIOS (Users)
-### =============================================================================
+
+# =============================================================================
+# Verificar sesiones (Users)
+# =============================================================================
+
+### Verificar sesión Starchy
+GET {{hostAuth}}/me
+Authorization: Bearer {{TokenStarchy}}
+
+### Verificar sesión Dr Donut
+GET {{hostAuth}}/me
+Authorization: Bearer {{TokenDrDonut}}
+
+### Verificar sesión Crunchy
+GET {{hostAuth}}/me
+Authorization: Bearer {{TokenCrunchy}}
+
+
+# =============================================================================
+# Leer USUARIOS (Users)
+# =============================================================================
+
+### Leer usuario por ID (usar ID de usuario creado)
+GET {{host}}/{{IDStarchy}}
+# GET {{host}}/{{IDDrDonut}}
+# GET {{host}}/{{IDCrunchy}}
+Authorization: Bearer {{TokenStarchy}}
+# Authorization: Bearer {{TokenDrDonut}}
+# Authorization: Bearer {{TokenCrunchy}}
+
+
+### Leer todos los usuarios
+GET {{host}}/
+
+# =============================================================================
+# Actualizar USUARIOS (Users)
+# =============================================================================
+
+### Actualizar usuario
+PATCH {{host}}/{{IDStarchy}}
+# PATCH {{host}}/{{IDDrDonut}}
+# PATCH {{host}}/{{IDCrunchy}}
+# Authorization: Bearer {{TokenStarchy}}
+# Authorization: Bearer {{TokenDrDonut}}
+Authorization: Bearer {{TokenCrunchy}}
+Content-Type: application/json
+
+{
+  "email": "starchy.adventure@time.cartoon"
+}
+
+# =============================================================================
+# Eliminar Users (Users)
+# =============================================================================
+
+### Eliminar usuario
+DELETE {{host}}/{{IDStarchy}}
+Authorization: Bearer {{TokenStarchy}}
+
+### Eliminar usuario
+DELETE {{host}}/{{IDDrDonut}}
+Authorization: Bearer {{TokenDrDonut}}
+
+### Eliminar usuario
+DELETE {{host}}/{{IDCrunchy}}
+Authorization: Bearer {{TokenCrunchy}}
+
+# =============================================================================
+# Activar Users (Admin)
+# =============================================================================
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0aGVQcmltby5hZHZlbnR1cmVAdGltZS5jYXJ0b29uIiwicm9sZSI6IkFETUlOIiwiZXhwIjo3NzY5Mjg4MzA3fQ.g-1hs1XFYyqEElw2I2n5SqEtWcXhsyJqlQnTmByqLf0
+
+### Login como Admin (JSON)
+POST {{host}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "thePrimo.adventure@time.cartoon",
+  "password": "adventuretime"
+}
+
+### Activar Starchy
+PATCH {{hostAdmin}}/user/activate/starchy.adventure@time.cartoon
+Authorization: Bearer {{adminToken}}
+
+### Activar Dr Donut
+PATCH {{hostAdmin}}/user/activate/DrDonut.adventure@time.cartoon
+Authorization: Bearer {{adminToken}}
+
+### Activar Crunchy
+PATCH {{hostAdmin}}/user/activate/crunchy.adventure@time.cartoon
+Authorization: Bearer {{adminToken}}
+
+# =============================================================================
+# Crear Usuarios (Users)
+# =============================================================================
 
 ### Crear Starchy
 POST {{host}}/
@@ -66,23 +175,3 @@ Content-Type: application/json
   "email": "crunchy.adventure@time.cartoon",
   "password": "adventuretime"
 }
-
-### Leer usuario por ID (usar ID de usuario creado)
-GET {{host}}/17653362689770001
-Authorization: Bearer {{UserToken}}
-
-
-### Leer todos los usuarios
-GET {{host}}/
-
-### Actualizar usuario
-PATCH {{host}}/17653216414580002
-Authorization: Bearer {{UserToken}}
-Content-Type: application/json
-
-{
-  "email": "starchy.adventureNuevo@time.cartoon"
-}
-
-### Eliminar usuario
-DELETE {{host}}/17647805133370001

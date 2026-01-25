@@ -1,24 +1,30 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-
+from app.dependencies import get_user_service, get_admin_service
+from app.domain.services import UserService
 from app.core import  settings 
-from .schemas import UserIn
+from .schemas import UserIn, LoginRequest
 from app.dependencies import get_current_user
 from .services import AuthAPIService
 
 auth_router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
-# Ejemplo: usuario ficticio. En producción usar repositorio/BD.
-# Servicio de autenticación
-auth_service = AuthAPIService(
-    settings.DATA_PATH_USERS,
-    settings.DATA_PATH_ADMINS,
-    settings.ACCESS_TOKEN_EXPIRE_MINUTES,
-)
+def get_auth_service(
+    user_service: UserService = Depends(get_user_service),
+    admin_service: UserService = Depends(get_admin_service)
+) -> AuthAPIService:
+    """Inyecta AuthAPIService con servicios de usuario y admin."""
+    return AuthAPIService(
+        user_service=user_service,
+        admin_service=admin_service,
+        expire_minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+    )
+
+
 
 @auth_router.post("/login")
-async def login_json(payload: UserIn):
-    access_token, type_token  = auth_service.loginWithJson(payload)
-    return {"message": 'inicio de sesion  exitoso por Json',"access_token": access_token, "token_type": type_token}
+def login(credentials: LoginRequest, auth_service: AuthAPIService = Depends(get_auth_service)):
+    """Autenticar usuario o admin."""
+    return auth_service.login(credentials.email, credentials.password)
 
 
 @auth_router.post("/logout")

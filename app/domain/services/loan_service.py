@@ -9,7 +9,7 @@ from typing import Optional
 from app.domain.repositories import LoansRepository
 from app.domain.models import Loan, Book, BookCase
 from .inventory_service import InventoryService
-from .user_service import UserService
+from .person.user_service import UserService
 from .book_case_services import BookCaseService
 from .reservation_service import ReservationQueueService
 from app.domain.exceptions import BookAlreadyBorrowedException

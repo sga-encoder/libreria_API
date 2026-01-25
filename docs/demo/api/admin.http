@@ -1,5 +1,5 @@
 @host = http://localhost:8000/api/v1
-@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0aGVQcmltby5hZHZlbnR1cmVAdGltZS5jYXJ0b29uIiwicm9sZSI6IlVTRVIiLCJleHAiOjE3NjUzMjI3MDd9.d6FBfo2XDgSyEPYvCV5yFs5hq7nUT9bJKj2qp7W59ZE
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0aGVQcmltby5hZHZlbnR1cmVAdGltZS5jYXJ0b29uIiwicm9sZSI6IkFETUlOIiwiZXhwIjo3NzY5Mjg4MzA3fQ.g-1hs1XFYyqEElw2I2n5SqEtWcXhsyJqlQnTmByqLf0
 
 ### =============================================================================
 ### AUTENTICACIÓN DE ADMIN
@@ -23,18 +23,29 @@ Authorization: Bearer {{adminToken}}
 ### =============================================================================
 
 ### Crear nuevo administrador
+POST {{host}}/admin/bootstrap
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "fullName": "The Primo",
+  "email": "thePrimo.adventure@time.cartoon",
+  "password": "adventuretime"
+}
+
+### Crear nuevo administrador
 POST {{host}}/admin/
 Authorization: Bearer {{adminToken}}
 Content-Type: application/json
 
 {
-  "fullName": "Billy",
-  "email": "billy.adventure@time.cartoon",
+  "fullName": "Cosmic Owl",
+  "email": "cosmicOwl.adventure@time.cartoon",
   "password": "adventuretime"
 }
 
 ### Leer un administrador específico
-GET {{host}}/admin/00000000000000001
+GET {{host}}/admin/17692882961620001
 Authorization: Bearer {{adminToken}}
 
 ### Leer todos los administradores
@@ -42,7 +53,7 @@ GET {{host}}/admin/
 Authorization: Bearer {{adminToken}}
 
 ### Actualizar un administrador
-PATCH {{host}}/admin/00000000000000001
+PATCH {{host}}/admin/17692882961620001
 Authorization: Bearer {{adminToken}}
 Content-Type: application/json
 

@@ -4,7 +4,19 @@ from fastapi.responses import JSONResponse
 from app.api.v1 import book_router, loan_router, user_router, auth_router, admin_router
 from app.core.logging_config import setup_logging
 from app.domain.exceptions import LibraryException
+from app.core.database import init_db
+from contextlib import asynccontextmanager
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    print("🚀 Iniciando aplicación...")
+    init_db()  # ← AQUÍ: Crear tablas al iniciar
+    print("✅ Base de datos inicializada")
+    yield
+    # Shutdown
+    print("🛑 Deteniendo aplicación...")
+    
 logger = setup_logging(log_level="DEBUG")  # ← Cambiar a "INFO" en producción
 
 logger.info("=" * 80)
@@ -14,7 +26,8 @@ logger.info("=" * 80)
 app = FastAPI(   
     title="Library Management API",
     description="API para gestión de biblioteca con préstamos y reservas",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 @app.get("/")

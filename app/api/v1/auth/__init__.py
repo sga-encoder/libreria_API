@@ -1,4 +1,4 @@
 from .router import auth_router
-from .schemas import Token, UserIn, TokenData
+from .schemas import LoginRequest, UserIn, TokenResponse
 
-__all__ = ["auth_router", "Token", "UserIn", "TokenData"]
+__all__ = ["auth_router", "LoginRequest", "UserIn", "TokenResponse"]
