@@ -154,7 +154,6 @@ class Book:
             False
         )
             
-
     @classmethod
     def default(cls):
         """

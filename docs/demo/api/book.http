@@ -1,17 +1,35 @@
-@host = http://localhost:8000/api/v1/book
-@token = <YOUR_ACCESS_TOKEN_HERE>
+@hostBook = http://localhost:8000/api/v1/book
+@hostAuth = http://localhost:8000/api/v1/auth
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0aGVQcmltby5hZHZlbnR1cmVAdGltZS5jYXJ0b29uIiwicm9sZSI6IkFETUlOIiwiZXhwIjo3NzY5Mjg4MzA3fQ.g-1hs1XFYyqEElw2I2n5SqEtWcXhsyJqlQnTmByqLf0
+@bookIsbn = 9781234567890
+@bookTitleSearch = El Gran Libro
+@bookAuthorSearch = Autor Ejemplo
+@bookGenreSearch = FICCION
 
 ### =============================================================================
-### LIBROS (Books)
+### AUTH (para obtener token admin)
 ### =============================================================================
 
-### Crear libro (requiere autenticación)
-POST {{host}}/
+### Login como Admin (JSON)
+POST {{hostAuth}}/login
 Content-Type: application/json
-Authorization: Bearer {{token}}
 
 {
-  "id_IBSN": "978-1234567890",
+  "email": "thePrimo.adventure@time.cartoon",
+  "password": "adventuretime"
+}
+
+### =============================================================================
+### LIBROS (Books) - requiere token de admin para mutaciones
+### =============================================================================
+
+### Crear libro (admin)
+POST {{hostBook}}/
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "id_IBSN": "{{bookIsbn}}",
   "title": "El Gran Libro",
   "author": "Autor Ejemplo",
   "gender": "FICCION",
@@ -22,24 +40,124 @@ Authorization: Bearer {{token}}
   "is_borrowed": false
 }
 
-### Crear libro por ISBN (desde API externa)
-POST {{host}}/ISBN/9780553897845
-
-### Leer libro por ISBN
-GET {{host}}/9780553897845
-
-### Leer todos los libros
-GET {{host}}/
-
-### Actualizar libro (requiere autenticación)
-PATCH {{host}}/9780553897845
+### Crear 5 libros de ejemplo (admin)
+### Libro 1
+POST {{hostBook}}/
 Content-Type: application/json
-Authorization: Bearer {{token}}
+Authorization: Bearer {{adminToken}}
 
 {
-  "title": "El Gran Libro - Edición Revisada"
+  "id_IBSN": "9780553897845",
+  "title": "A Game of Thrones",
+  "author": "George R. R. Martin",
+  "gender": "FANTASY",
+  "weight": 0.9,
+  "price": 14.99,
+  "description": "Book 1 of A Song of Ice and Fire.",
+  "frond_page_url": "https://example.com/got.jpg",
+  "is_borrowed": false
 }
 
-### Eliminar libro (requiere autenticación)
-DELETE {{host}}/9780553897845
-Authorization: Bearer {{token}}
+### Libro 2
+POST {{hostBook}}/
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "id_IBSN": "9780261103573",
+  "title": "The Fellowship of the Ring",
+  "author": "J.R.R. Tolkien",
+  "gender": "FANTASY",
+  "weight": 0.8,
+  "price": 12.50,
+  "description": "The first volume of The Lord of the Rings.",
+  "frond_page_url": "https://example.com/lotr1.jpg",
+  "is_borrowed": false
+}
+
+### Libro 3
+POST {{hostBook}}/
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "id_IBSN": "9780132350884",
+  "title": "Clean Code",
+  "author": "Robert C. Martin",
+  "gender": "TECH",
+  "weight": 0.7,
+  "price": 29.99,
+  "description": "A Handbook of Agile Software Craftsmanship.",
+  "frond_page_url": "https://example.com/cleancode.jpg",
+  "is_borrowed": false
+}
+
+### Libro 4
+POST {{hostBook}}/
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "id_IBSN": "9780596007126",
+  "title": "Head First Design Patterns",
+  "author": "Eric Freeman",
+  "gender": "TECH",
+  "weight": 1.1,
+  "price": 34.99,
+  "description": "A brain-friendly guide to design patterns.",
+  "frond_page_url": "https://example.com/hfdp.jpg",
+  "is_borrowed": false
+}
+
+### Libro 5
+POST {{hostBook}}/
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "id_IBSN": "9788497592208",
+  "title": "El Código Da Vinci",
+  "author": "Dan Brown",
+  "gender": "MYSTERY",
+  "weight": 0.6,
+  "price": 10.99,
+  "description": "Thriller de misterio y simbología.",
+  "frond_page_url": "https://example.com/davinci.jpg",
+  "is_borrowed": false
+}
+
+### Leer libro por ISBN
+GET {{hostBook}}/{{bookIsbn}}
+
+### Leer todos los libros
+GET {{hostBook}}/
+
+### Buscar por autor
+GET {{hostBook}}/search/author/{{bookAuthorSearch}}
+
+### Buscar por título
+GET {{hostBook}}/search/title/{{bookTitleSearch}}
+
+### Buscar por género
+GET {{hostBook}}/search/genre/{{bookGenreSearch}}
+
+### Libros disponibles (no prestados)
+GET {{hostBook}}/available/list
+
+### Libros prestados
+GET {{hostBook}}/borrowed/list
+
+### Actualizar libro (admin)
+PATCH {{hostBook}}/{{bookIsbn}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "title": "El Gran Libro - Edición Revisada",
+  "price": 21.50,
+  "description": "Edición revisada con nuevo prólogo."
+}
+
+### Eliminar libro (admin)
+DELETE {{hostBook}}/{{bookIsbn}}
+Authorization: Bearer {{adminToken}}

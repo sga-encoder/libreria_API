@@ -38,11 +38,13 @@ class BookORM(Base):
     __tablename__ = "books"
     
     id_IBSN = Column(String(13), primary_key=True, index=True)
-    title = Column(String, index=True)
-    author = Column(String)
-    genre = Column(String)
-    weight = Column(Float)
-    price = Column(Float)
+    title = Column(String, nullable=False, index=True)
+    author = Column(String, nullable=False)
+    gender = Column(String)  # género/categoría
+    weight = Column(Float, nullable=False)
+    price = Column(Float, nullable=False)
+    description = Column(String, default="")
+    frond_page_url = Column(String, default="")
     is_borrowed = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.now)
     updated_at = Column(DateTime, default=datetime.now, onupdate=datetime.now)

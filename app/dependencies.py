@@ -4,8 +4,8 @@ from sqlalchemy.orm import Session
 
 from app.core import settings, oauth2_scheme, decode_access_token
 from app.core.database import get_db
-from app.persistence.repositories import UsersRepositorySQL, AdminsRepositorySQL
-from app.domain.services import UserService, AdminService, InventoryService
+from app.persistence.repositories import UsersRepositorySQL, AdminsRepositorySQL, BooksRepositorySQL
+from app.domain.services import UserService, AdminService, BookService, InventoryService
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -17,12 +17,18 @@ def get_users_repository(db: Session = Depends(get_db)) -> UsersRepositorySQL:
 def get_admins_repository(db: Session = Depends(get_db)) -> AdminsRepositorySQL:
     return AdminsRepositorySQL(db)
 
+def get_books_repository(db: Session = Depends(get_db)) -> BooksRepositorySQL:
+    return BooksRepositorySQL(db)
+
 # ==================== SERVICIOS DE DOMINIO ====================
 def get_user_service(repo: UsersRepositorySQL = Depends(get_users_repository)) -> UserService:
     return UserService(repo=repo)
 
 def get_admin_service(repo: AdminsRepositorySQL = Depends(get_admins_repository)) -> AdminService:
     return AdminService(repo=repo)
+
+def get_book_service(repo: BooksRepositorySQL = Depends(get_books_repository)) -> BookService:
+    return BookService(repo=repo)
 
 def get_inventory_service() -> InventoryService:
     return InventoryService(settings.DATA_PATH_INVENTARY)
