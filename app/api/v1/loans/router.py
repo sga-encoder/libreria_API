@@ -1,308 +1,105 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from . import LoanCreate, LoanUpdate
-from .schemas import BookCaseCreate, BookCaseInfo, TypeOrderingEnum
-from .services import LoanAPIService
-from app.core import settings
-from app.dependencies import get_current_user, get_current_admin, get_user_service
-from app.domain.models.enums import TypeOrdering
-from app.domain.services import UserService
+from app.dependencies import get_current_admin, get_loan_service
+from app.domain.services import LoanService
 
 loan_router = APIRouter(
     prefix="/api/v1/loan",
     tags=["loan"]
 )
 
-def get_loan_api_service(
-    user_service: UserService = Depends(get_user_service),
-    # Si tienes InventoryService, también inyéctalo
-    # inventory_service = Depends(get_inventory_service)
-) -> LoanAPIService:
-    """Inyecta LoanAPIService con servicios de usuario."""
-    return LoanAPIService(
-        settings.DATA_PATH_LOANS_RECORDS, 
-        settings.DATA_PATH_CURRENT_LOANS,
-        settings.DATA_PATH_INVENTARY, 
-        user_service=user_service,
-    )
-
-
-# Crear BookCase con algoritmo DEFICIENT por defecto
-try:
-    get_loan_api_service().create_bookcase_with_algorithm(
-        algorithm_type=TypeOrdering.DEFICIENT,
-        weight_capacity=10.0,
-        capacity_stands=5
-    )
-    print("[OK] BookCase inicializado con algoritmo DEFICIENT")
-except Exception as e:
-    print(f"[WARN] No se pudo inicializar BookCase: {e}")
-    print("  Los prestamos funcionaran sin ordenamiento de estanterias")
-
-@loan_router.post("/")
-def create(loan: LoanCreate, loan_api_service: LoanAPIService = Depends(get_loan_api_service)):
-    """
-    Crear un nuevo préstamo usando los datos proporcionados.
-
-    Parámetros:
-    - loan (LoanCreate): Objeto con email del usuario e ISBN del libro.
-
-    Retorna:
-    - dict: Mensaje de éxito y representación del préstamo creado.
-    """
-    data = loan_api_service.create(loan)
-    return {
-        "message": 'Préstamo creado satisfactoriamente',
-        "data": data.to_dict() if hasattr(data, 'to_dict') else str(data)
-    }
+@loan_router.post("/", dependencies=[Depends(get_current_admin)], status_code=status.HTTP_201_CREATED)
+def create(
+    loan: LoanCreate, 
+    loan_service: LoanService = Depends(get_loan_service)
+    ):
+    """Crear un nuevo préstamo (solo admin)."""
+    try:
+        data = loan_service.create(loan.model_dump())
+        return {"message": "Préstamo creado satisfactoriamente", "data": data.to_dict()}
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 @loan_router.get("/{id}")
-def read(id: str, loan_api_service: LoanAPIService = Depends(get_loan_api_service)):
-    """
-    Obtener los detalles de un préstamo por su ID.
-
-    Parámetros:
-    - id (str): ID del préstamo a consultar.
-
-    Retorna:
-    - dict: Mensaje de éxito y representación del préstamo consultado.
-    """
-    data = loan_api_service.read_loan(id)
-    return {
-        "message": f"Préstamo {id} leído satisfactoriamente",
-        "data": data.to_dict_with_objects() if hasattr(data, 'to_dict') else str(data)
-    }
+def read(id: str, loan_service: LoanService = Depends(get_loan_service)):
+    """Obtener los detalles de un préstamo por su ID con relaciones cargadas."""
+    try:
+        data = loan_service.get_by_id_with_details(id)
+        if not data:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Préstamo no encontrado")
+        return {"message": f"Préstamo {id} encontrado", "data": data}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 @loan_router.get("/")
-def read_all(loan_api_service: LoanAPIService = Depends(get_loan_api_service)):
-    """
-    Obtener la lista de todos los préstamos registrados.
-
-    Retorna:
-    - dict: Mensaje de éxito y lista de préstamos (cada uno como dict).
-    """
-    data = loan_api_service.read_all_loans()
-    return {
-        "message": "Se leyeron satisfactoriamente todos los préstamos", 
-        "data": [loan.to_dict_with_objects() if hasattr(loan, 'to_dict') else str(loan) for loan in data]
-    }
-
-@loan_router.patch("/{id}")
-def update(id: str, loan: LoanUpdate, loan_api_service: LoanAPIService = Depends(get_loan_api_service)):
-    """
-    Actualizar un préstamo existente reemplazando el libro.
-
-    Parámetros:
-    - id (str): ID del préstamo a actualizar.
-    - loan (LoanUpdate): Objeto con el nuevo ISBN del libro.
-
-    Retorna:
-    - dict: Mensaje de éxito y representación del nuevo préstamo.
-    """
-    data = loan_api_service.update(id, loan)
-    return {
-        "message": f"Préstamo {id} actualizado satisfactoriamente", 
-        "data": data.to_dict_with_objects() if hasattr(data, 'to_dict') else str(data)
-    }
-
-@loan_router.delete("/{id}")
-def delete(id: str, loan_api_service: LoanAPIService = Depends(get_loan_api_service)):
-    """
-    Eliminar un préstamo identificado por su ID.
-
-    Parámetros:
-    - id (str): ID del préstamo a eliminar.
-
-    Retorna:
-    - dict: Mensaje de éxito y un booleano indicando la operación.
-    """
-    result = loan_api_service.delete(id)
-    return {
-        "message": f"Préstamo {id} eliminado satisfactoriamente",
-        "data": result
-    }
-
-
-@loan_router.get("/reservations/queue")
-def get_reservations_queue(loan_api_service: LoanAPIService = Depends(get_loan_api_service)):
-    """
-    Obtener la lista de espera (reservation queue) de libros.
-    
-    Retorna la cola de reservas con todos los usuarios que están esperando
-    por libros que actualmente están prestados.
-    
-    Retorna:
-    - dict: Mensaje de éxito y lista de reservas con su posición.
-    
-    Ejemplo de respuesta:
-    {
-        "message": "Cola de reservas obtenida exitosamente",
-        "data": [
-            {
-                "position": 1,
-                "user_email": "juan.perez@test.com",
-                "user_name": "Juan Pérez",
-                "book_isbn": "9780156012195",
-                "book_title": "El Principito"
-            },
-            ...
-        ],
-        "total_reservations": 4
-    }
-    """
-    reservations = loan_api_service.get_reservations_queue()
-    return {
-        "message": "Cola de reservas obtenida exitosamente" if reservations else "No hay reservas en espera",
-        "data": reservations,
-        "total_reservations": len(reservations)
-    }
-
-
-# ════════════════════════════════════════════════════════════════════════════
-# ENDPOINTS DE BOOKCASE - Gestionar ordenamiento de libros
-# ════════════════════════════════════════════════════════════════════════════
-
-@loan_router.get("/bookcase/status")
-def get_bookcase_status(loan_api_service: LoanAPIService = Depends(get_loan_api_service)):
-    """
-    Obtener el estado actual del BookCase.
-    
-    Retorna:
-    - dict: Información sobre si BookCase está configurado y sus parámetros.
-    
-    Ejemplo de respuesta:
-    {
-        "message": "Estado del BookCase",
-        "data": {
-            "is_configured": true,
-            "algorithm_type": "DEFICIENT",
-            "weight_capacity": 10.0,
-            "capacity_stands": 5
-        }
-    }
-    """
-    bookcase = loan_api_service.get_bookcase()
-    
-    if bookcase is None:
-        info = {
-            "is_configured": False,
-            "algorithm_type": None,
-            "weight_capacity": None,
-            "capacity_stands": None
-        }
-    else:
-        info = {
-            "is_configured": True,
-            "algorithm_type": str(bookcase.get_TypeOrdering()),
-            "weight_capacity": bookcase.get_weighOrdering(),
-            "capacity_stands": bookcase.get_capacityStands()
-        }
-    
-    return {
-        "message": "Estado del BookCase",
-        "data": info
-    }
-
-
-@loan_router.post("/bookcase/configure")
-def configure_bookcase(config: BookCaseCreate, loan_api_service: LoanAPIService = Depends(get_loan_api_service)):
-    """
-    Crear o actualizar la configuración del BookCase.
-    
-    Parámetros:
-    - config (BookCaseCreate): Objeto con:
-        - algorithm_type: "DEFICIENT" o "OPTIMOUM"
-        - weight_capacity: Capacidad de peso en kg
-        - capacity_stands: Cantidad de estantes
-    
-    Ejemplo de solicitud:
-    {
-        "algorithm_type": "DEFICIENT",
-        "weight_capacity": 15.0,
-        "capacity_stands": 8
-    }
-    
-    Retorna:
-    - dict: Mensaje de éxito y parámetros configurados.
-    """
+def read_all(loan_service: LoanService = Depends(get_loan_service)):
+    """Obtener todos los préstamos con usuario y libro."""
     try:
-        # Convertir string a enum
-        algorithm_enum = TypeOrdering[config.algorithm_type.value]
-        
-        # Crear BookCase con la configuración
-        bookcase = loan_api_service.create_bookcase_with_algorithm(
-            algorithm_type=algorithm_enum,
-            weight_capacity=config.weight_capacity,
-            capacity_stands=config.capacity_stands
-        )
-        
-        return {
-            "message": "BookCase configurado exitosamente",
-            "data": {
-                "algorithm_type": config.algorithm_type.value,
-                "weight_capacity": config.weight_capacity,
-                "capacity_stands": config.capacity_stands
-            }
-        }
+        data = loan_service.get_all_with_details()
+        return {"message": f"Se encontraron {len(data)} préstamos", "data": data}
     except Exception as e:
-        return {
-            "message": f"Error al configurar BookCase: {str(e)}",
-            "data": None
-        }
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
-
-@loan_router.delete("/bookcase/disable")
-def disable_bookcase(loan_api_service: LoanAPIService = Depends(get_loan_api_service)):
-    """
-    Desactivar el BookCase (sin ordenamiento de estanterías).
-    
-    Los préstamos continuarán funcionando sin aplicar ordenamiento.
-    
-    Retorna:
-    - dict: Mensaje de confirmación.
-    """
-    loan_api_service.set_bookcase(None)
-    
-    return {
-        "message": "BookCase desactivado",
-        "data": {
-            "is_configured": False,
-            "info": "Los préstamos funcionarán sin ordenamiento de estanterías"
-        }
-    }
-
-
-@loan_router.post("/bookcase/organize", dependencies=[Depends(get_current_admin)])
-def organize_bookcase(loan_api_service: LoanAPIService = Depends(get_loan_api_service)):
-    """
-    Ejecutar manualmente el algoritmo de organización configurado.
-    
-    REQUIERE AUTENTICACIÓN DE ADMINISTRADOR
-    
-    Ejecuta el algoritmo de ordenamiento (DEFICIENT o OPTIMOUM) sobre todos
-    los libros del inventario según la configuración actual del BookCase.
-    
-    Retorna:
-    - dict: Resultado de la organización con detalles del algoritmo ejecutado.
-    
-    Ejemplo de respuesta:
-    {
-        "message": "Organización ejecutada exitosamente",
-        "data": {
-            "algorithm_type": "DEFICIENT",
-            "weight_capacity": 10.0,
-            "books_processed": 25,
-            "dangerous_combinations_found": 3,
-            "execution_status": "success"
-        }
-    }
-    """
+@loan_router.patch("/{id}", dependencies=[Depends(get_current_admin)])
+def update(id: str, loan: LoanUpdate, loan_service: LoanService = Depends(get_loan_service)):
+    """Actualizar un préstamo (solo admin)."""
     try:
-        result = loan_api_service.execute_organization()
-        return {
-            "message": "Organización ejecutada exitosamente",
-            "data": result
-        }
+        payload = loan.model_dump(exclude_unset=True)
+        data = loan_service.update(id, payload)
+        if not data:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Préstamo no encontrado")
+        return {"message": f"Préstamo {id} actualizado", "data": data.to_dict()}
+    except HTTPException:
+        raise
     except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+@loan_router.delete("/{id}", dependencies=[Depends(get_current_admin)])
+def delete(id: str, loan_service: LoanService = Depends(get_loan_service)):
+    """Eliminar un préstamo (solo admin)."""
+    try:
+        result = loan_service.delete(id)
+        return {"message": f"Préstamo {id} eliminado", "data": result}
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+@loan_router.post("/{id}/return", dependencies=[Depends(get_current_admin)])
+def return_loan(id: str, loan_service: LoanService = Depends(get_loan_service)):
+    """Marcar préstamo como devuelto (devolución de libro)."""
+    try:
+        result = loan_service.deactivate(id)
+        return {"message": f"Préstamo {id} marcado como devuelto", "data": result}
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+@loan_router.get("/user/{id_user}")
+def get_loans_by_user(id_user: str, loan_service: LoanService = Depends(get_loan_service)):
+    """Obtener todos los préstamos de un usuario."""
+    try:
+        data = loan_service.get_by_user(id_user)
+        return {"message": f"Se encontraron {len(data)} préstamos del usuario", "data": [l.to_dict() for l in data]}
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+@loan_router.get("/book/{id_ISBN}")
+def get_loans_by_book(id_ISBN: str, loan_service: LoanService = Depends(get_loan_service)):
+    """Obtener todos los préstamos de un libro."""
+    try:
+        data = loan_service.get_by_book(id_ISBN)
+        return {"message": f"Se encontraron {len(data)} préstamos del libro", "data": [l.to_dict() for l in data]}
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+@loan_router.get("/active/list")
+def get_active_loans(loan_service: LoanService = Depends(get_loan_service)):
+    """Obtener todos los préstamos activos."""
+    try:
+        data = loan_service.get_active()
+        return {"message": f"Se encontraron {len(data)} préstamos activos", "data": [l.to_dict() for l in data]}
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
         return {
             "message": f"Error al ejecutar organización: {str(e)}",
             "data": None

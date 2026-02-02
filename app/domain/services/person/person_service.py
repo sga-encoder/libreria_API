@@ -136,3 +136,9 @@ class PersonService(ABC):
             raise RepositoryException(f"{self._role.name} {email} no encontrado")
         except Exception as e:
             raise RepositoryException(f"Error activando {self._role.name}: {e}")
+        
+    def __str__(self):
+        return f"{self.__class__.__name__}(role={self._role.name}, total={len(self._people)})"
+    
+    def __repr__(self):
+        return f"{self.__class__.__name__}(role={self._role.name}, total={len(self._people)})"

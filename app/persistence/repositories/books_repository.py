@@ -113,3 +113,9 @@ class BooksRepositorySQL(BaseRepository[BookORM]):
             frond_page_url=book.get_frond_page_url(),
             is_borrowed=book.get_is_borrowed()
         )
+
+    def __str__(self):
+        return f"BooksRepositorySQL(total_books={len(self.read_all())})"
+    
+    def __repr__(self):
+        return f"BooksRepositorySQL(total_books={len(self.read_all())})"

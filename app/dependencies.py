@@ -4,8 +4,8 @@ from sqlalchemy.orm import Session
 
 from app.core import settings, oauth2_scheme, decode_access_token
 from app.core.database import get_db
-from app.persistence.repositories import UsersRepositorySQL, AdminsRepositorySQL, BooksRepositorySQL
-from app.domain.services import UserService, AdminService, BookService, InventoryService
+from app.persistence.repositories import UsersRepositorySQL, AdminsRepositorySQL, BooksRepositorySQL, LoansRepositorySQL
+from app.domain.services import UserService, AdminService, BookService, LoanService
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -20,6 +20,9 @@ def get_admins_repository(db: Session = Depends(get_db)) -> AdminsRepositorySQL:
 def get_books_repository(db: Session = Depends(get_db)) -> BooksRepositorySQL:
     return BooksRepositorySQL(db)
 
+def get_loans_repository(db: Session = Depends(get_db)) -> LoansRepositorySQL:
+    return LoansRepositorySQL(db)
+
 # ==================== SERVICIOS DE DOMINIO ====================
 def get_user_service(repo: UsersRepositorySQL = Depends(get_users_repository)) -> UserService:
     return UserService(repo=repo)
@@ -30,8 +33,8 @@ def get_admin_service(repo: AdminsRepositorySQL = Depends(get_admins_repository)
 def get_book_service(repo: BooksRepositorySQL = Depends(get_books_repository)) -> BookService:
     return BookService(repo=repo)
 
-def get_inventory_service() -> InventoryService:
-    return InventoryService(settings.DATA_PATH_INVENTARY)
+def get_loan_service(repo: LoansRepositorySQL = Depends(get_loans_repository), user_service: UserService = Depends(get_user_service), book_service: BookService = Depends(get_book_service)) -> LoanService:
+    return LoanService(repo=repo, user_service=user_service, book_service=book_service)
 
 # ==================== AUTENTICACIÓN ====================
 def get_current_user(

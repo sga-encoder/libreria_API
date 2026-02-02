@@ -8,10 +8,9 @@
 #  Login  (Users)
 # =============================================================================
 
-### Login  Starchy(JSON)
-@TokenStarchy = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdGFyY2h5LmFkdmVudHVyZUB0aW1lLmNhcnRvb24iLCJyb2xlIjoiVVNFUiIsImV4cCI6Nzc2OTM3MTYzOX0.ZHtASbZkPZNAOmtzvQo4E-OdEOjYuXn6vOHBjn6aobc
-
-@IDStarchy = 17692977443180001
+### Login  Starchy
+@TokenStarchy = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdGFyY2h5LmFkdmVudHVyZUB0aW1lLmNhcnRvb24iLCJyb2xlIjoiVVNFUiIsImV4cCI6Nzc2OTcwODE5Nn0.04vgpaBjaXJWiCHsfAYPMWzX3m7xRIHcvTNhK__9i9M
+@IDStarchy = 17697080639760002
 POST {{hostAuth}}/login
 Content-Type: application/json
 
@@ -22,10 +21,9 @@ Content-Type: application/json
 
 
 
-### Login Dr Donut (JSON) 
-@TokenDrDonut = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJEckRvbnV0LmFkdmVudHVyZUB0aW1lLmNhcnRvb24iLCJyb2xlIjoiVVNFUiIsImV4cCI6Nzc2OTM3MTU1OH0.QOW2zHFFaC0dtzequx0Jplocy9LFQZb46iU_jRUWPdQ
-
-@IDDrDonut = 17692981449200003
+### Login Dr Donut
+@TokenDrDonut = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJEckRvbnV0LmFkdmVudHVyZUB0aW1lLmNhcnRvb24iLCJyb2xlIjoiVVNFUiIsImV4cCI6Nzc2OTcwODIwOH0.1h9_dApOdRaoap8DRNRPh2_ldAD9UoaZP9bJYlXSOwc
+@IDDrDonut = 17697080666840003
 POST {{hostAuth}}/login
 Content-Type: application/json
 
@@ -36,10 +34,9 @@ Content-Type: application/json
 
 
 
-### Login Crunchy (JSON)
-@TokenCrunchy = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjcnVuY2h5LmFkdmVudHVyZUB0aW1lLmNhcnRvb24iLCJyb2xlIjoiVVNFUiIsImV4cCI6Nzc2OTM3MTU5NH0.tQTiiwB6U-dyilUSoF464dPYm3spiwox_KZhrBxpX0Q
-
-@IDCrunchy = 17692981576070006
+### Login Crunchy
+@TokenCrunchy = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjcnVuY2h5LmFkdmVudHVyZUB0aW1lLmNhcnRvb24iLCJyb2xlIjoiVVNFUiIsImV4cCI6Nzc2OTcwODIyMn0.V76uYliiCwVtnePIIbrQYHA6oPZA0l_Fnpav-jXQ83I
+@IDCrunchy = 17697080699570004
 POST {{hostAuth}}/login
 Content-Type: application/json
 
@@ -72,9 +69,9 @@ Authorization: Bearer {{TokenCrunchy}}
 # =============================================================================
 
 ### Leer usuario por ID (usar ID de usuario creado)
-GET {{host}}/{{IDStarchy}}
+# GET {{host}}/{{IDStarchy}}
 # GET {{host}}/{{IDDrDonut}}
-# GET {{host}}/{{IDCrunchy}}
+GET {{host}}/{{IDCrunchy}}
 Authorization: Bearer {{TokenStarchy}}
 # Authorization: Bearer {{TokenDrDonut}}
 # Authorization: Bearer {{TokenCrunchy}}
@@ -119,8 +116,7 @@ Authorization: Bearer {{TokenCrunchy}}
 # =============================================================================
 # Activar Users (Admin)
 # =============================================================================
-@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0aGVQcmltby5hZHZlbnR1cmVAdGltZS5jYXJ0b29uIiwicm9sZSI6IkFETUlOIiwiZXhwIjo3NzY5Mjg4MzA3fQ.g-1hs1XFYyqEElw2I2n5SqEtWcXhsyJqlQnTmByqLf0
-
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0aGVQcmltby5hZHZlbnR1cmVAdGltZS5jYXJ0b29uIiwicm9sZSI6IkFETUlOIiwiZXhwIjo3NzY5NzA3OTk4fQ.cBbl8cmINaCPoJ2Q3oLqkNJEAbNazRv4lwRuXl_vNLQ
 ### Login como Admin (JSON)
 POST {{host}}/auth/login
 Content-Type: application/json

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from . import UserCreate, UserUpdate
 from app.dependencies import get_current_user, verify_user_ownership, get_user_service
 from app.domain.services import UserService
@@ -17,6 +17,14 @@ def create(user: UserCreate, user_service: UserService = Depends(get_user_servic
 @user_router.get("/{id}", dependencies=[Depends(get_current_user)])
 def read(id: str, user_service: UserService = Depends(get_user_service)):
     data = user_service.get_by_id(id)
+    
+    # ✅ Validar que el usuario existe
+    if data is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Usuario con ID {id} no encontrado"
+        )
+    
     return {"message": f"se ha leído el usuario {id}", "data": data.to_dict()}
 
 @user_router.get("/")

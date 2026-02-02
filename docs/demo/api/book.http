@@ -1,16 +1,14 @@
 @hostBook = http://localhost:8000/api/v1/book
 @hostAuth = http://localhost:8000/api/v1/auth
-@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0aGVQcmltby5hZHZlbnR1cmVAdGltZS5jYXJ0b29uIiwicm9sZSI6IkFETUlOIiwiZXhwIjo3NzY5Mjg4MzA3fQ.g-1hs1XFYyqEElw2I2n5SqEtWcXhsyJqlQnTmByqLf0
-@bookIsbn = 9781234567890
-@bookTitleSearch = El Gran Libro
-@bookAuthorSearch = Autor Ejemplo
-@bookGenreSearch = FICCION
+
 
 ### =============================================================================
 ### AUTH (para obtener token admin)
 ### =============================================================================
 
 ### Login como Admin (JSON)
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0aGVQcmltby5hZHZlbnR1cmVAdGltZS5jYXJ0b29uIiwicm9sZSI6IkFETUlOIiwiZXhwIjo3NzY5NTIzMzEwfQ.p4PUC7JEDTm_SbNqxaDvpPGvkCAsRLZDFhBFC-jKRkA
+
 POST {{hostAuth}}/login
 Content-Type: application/json
 
@@ -24,105 +22,25 @@ Content-Type: application/json
 ### =============================================================================
 
 ### Crear libro (admin)
+
+@bookIsbn = 9781234567890
+@bookTitleSearch = Hora de Aventura
+@bookAuthorSearch = Adventure Time
+@bookGenreSearch = FICCION
+
 POST {{hostBook}}/
 Content-Type: application/json
 Authorization: Bearer {{adminToken}}
 
 {
   "id_IBSN": "{{bookIsbn}}",
-  "title": "El Gran Libro",
-  "author": "Autor Ejemplo",
-  "gender": "FICCION",
+  "title": "{{bookTitleSearch}}",
+  "author": "{{bookAuthorSearch}}",
+  "gender": "{{bookGenreSearch}}",
   "weight": 1.2,
   "price": 19.99,
   "description": "Un libro muy interesante.",
   "frond_page_url": "http://example.com/portada.jpg",
-  "is_borrowed": false
-}
-
-### Crear 5 libros de ejemplo (admin)
-### Libro 1
-POST {{hostBook}}/
-Content-Type: application/json
-Authorization: Bearer {{adminToken}}
-
-{
-  "id_IBSN": "9780553897845",
-  "title": "A Game of Thrones",
-  "author": "George R. R. Martin",
-  "gender": "FANTASY",
-  "weight": 0.9,
-  "price": 14.99,
-  "description": "Book 1 of A Song of Ice and Fire.",
-  "frond_page_url": "https://example.com/got.jpg",
-  "is_borrowed": false
-}
-
-### Libro 2
-POST {{hostBook}}/
-Content-Type: application/json
-Authorization: Bearer {{adminToken}}
-
-{
-  "id_IBSN": "9780261103573",
-  "title": "The Fellowship of the Ring",
-  "author": "J.R.R. Tolkien",
-  "gender": "FANTASY",
-  "weight": 0.8,
-  "price": 12.50,
-  "description": "The first volume of The Lord of the Rings.",
-  "frond_page_url": "https://example.com/lotr1.jpg",
-  "is_borrowed": false
-}
-
-### Libro 3
-POST {{hostBook}}/
-Content-Type: application/json
-Authorization: Bearer {{adminToken}}
-
-{
-  "id_IBSN": "9780132350884",
-  "title": "Clean Code",
-  "author": "Robert C. Martin",
-  "gender": "TECH",
-  "weight": 0.7,
-  "price": 29.99,
-  "description": "A Handbook of Agile Software Craftsmanship.",
-  "frond_page_url": "https://example.com/cleancode.jpg",
-  "is_borrowed": false
-}
-
-### Libro 4
-POST {{hostBook}}/
-Content-Type: application/json
-Authorization: Bearer {{adminToken}}
-
-{
-  "id_IBSN": "9780596007126",
-  "title": "Head First Design Patterns",
-  "author": "Eric Freeman",
-  "gender": "TECH",
-  "weight": 1.1,
-  "price": 34.99,
-  "description": "A brain-friendly guide to design patterns.",
-  "frond_page_url": "https://example.com/hfdp.jpg",
-  "is_borrowed": false
-}
-
-### Libro 5
-POST {{hostBook}}/
-Content-Type: application/json
-Authorization: Bearer {{adminToken}}
-
-{
-  "id_IBSN": "9788497592208",
-  "title": "El Código Da Vinci",
-  "author": "Dan Brown",
-  "gender": "MYSTERY",
-  "weight": 0.6,
-  "price": 10.99,
-  "description": "Thriller de misterio y simbología.",
-  "frond_page_url": "https://example.com/davinci.jpg",
   "is_borrowed": false
 }
 
@@ -161,3 +79,91 @@ Authorization: Bearer {{adminToken}}
 ### Eliminar libro (admin)
 DELETE {{hostBook}}/{{bookIsbn}}
 Authorization: Bearer {{adminToken}}
+
+
+### Crear 5 libros de ejemplo (admin)
+
+### Libro 1
+POST {{hostBook}}/
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "id_IBSN": "9780553897845",
+  "title": "The Chronicles of the Ice King",
+  "author": "Adventure Time",
+  "gender": "FANTASY",
+  "weight": 0.9,
+  "price": 14.99,
+  "description": "A tale of adventure in the Land of Ooo.",
+  "frond_page_url": "https://example.com/got.jpg",
+  "is_borrowed": false
+}
+
+### Libro 2
+POST {{hostBook}}/
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "id_IBSN": "9780261103573",
+  "title": "The Hidden Life of Lady Rainicorn",
+  "author": "Adventure Time",
+  "gender": "MYSTERIY",
+  "weight": 0.8,
+  "price": 12.50,
+  "description": "Exploring the mysteries of the multicolored unicorn.",
+  "frond_page_url": "https://example.com/lotr1.jpg",
+  "is_borrowed": false
+}
+
+### Libro 3
+POST {{hostBook}}/
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "id_IBSN": "9780132350884",
+  "title": "The Adventures of Fionna and Cake",
+  "author": "Adventure Time",
+  "gender": "FANTASY",
+  "weight": 0.7,
+  "price": 29.99,
+  "description": "A coding adventure with Fionna and Cake.",
+  "frond_page_url": "https://example.com/cleancode.jpg",
+  "is_borrowed": false
+}
+
+### Libro 4
+POST {{hostBook}}/
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "id_IBSN": "9780596007126",
+  "title": "The Dark Life of Marceline",
+  "author": "Adventure Time",
+  "gender": "TERROR",
+  "weight": 1.1,
+  "price": 34.99,
+  "description": "Design patterns in the life of a vampire queen.",
+  "frond_page_url": "https://example.com/hfdp.jpg",
+  "is_borrowed": false
+}
+
+### Libro 5
+POST {{hostBook}}/
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "id_IBSN": "9788497592208",
+  "title": "Joshua's Nighttime Adventures",
+  "author": "Adventure Time",
+  "gender": "MYSTERY",
+  "weight": 0.6,
+  "price": 10.99,
+  "description": "Thriller de misterio y simbología.",
+  "frond_page_url": "https://example.com/davinci.jpg",
+  "is_borrowed": false
+}

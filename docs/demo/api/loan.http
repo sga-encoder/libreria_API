@@ -1,222 +1,388 @@
 @host = http://localhost:8000/api/v1/loan
+@hostAuth = http://localhost:8000/api/v1/auth
+@hostBook = http://localhost:8000/api/v1/book
+@hostAdmin = http://localhost:8000/api/v1/admin
 
-# Usuarios de /data/json
-@user01 = 17653216386410001
-@user02 = 17653218466160001
-@user03 = 17653362689770001
+# =============================================================================
+# TOKENS Y CREDENCIALES
+# =============================================================================
 
-# Libros de /data/json
-@book01 = 9780441172719
-@book02 = 9788401337208
-@book04 = 9780062316097
-@book05 = 9780345539434
-@book06 = 9780393609394
-@book08 = 9780132350884
-@book09 = 9780134494166
-@book10 = 9781593279509
-@book11 = 9781593276034
-@book12 = 9781569319017
-@book13 = 9781569319000
-@book14 = 9780553897845
+### Login como Admin para obtener token
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0aGVQcmltby5hZHZlbnR1cmVAdGltZS5jYXJ0b29uIiwicm9sZSI6IkFETUlOIiwiZXhwIjo3NzY5NzA3OTk4fQ.cBbl8cmINaCPoJ2Q3oLqkNJEAbNazRv4lwRuXl_vNLQ
+POST {{hostAuth}}/login
+Content-Type: application/json
+
+{
+  "email": "thePrimo.adventure@time.cartoon",
+  "password": "adventuretime"
+}
+
+
+# =============================================================================
+#  Login  (Users)
+# =============================================================================
+
+### Login  Starchy
+@TokenStarchy = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdGFyY2h5LmFkdmVudHVyZUB0aW1lLmNhcnRvb24iLCJyb2xlIjoiVVNFUiIsImV4cCI6Nzc2OTcwODE5Nn0.04vgpaBjaXJWiCHsfAYPMWzX3m7xRIHcvTNhK__9i9M
+@IDStarchy = 17697080639760002
+POST {{hostAuth}}/login
+Content-Type: application/json
+
+{
+  "email": "starchy.adventure@time.cartoon",
+  "password": "adventuretime"
+}
+
+
+
+### Login Dr Donut
+@TokenDrDonut = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJEckRvbnV0LmFkdmVudHVyZUB0aW1lLmNhcnRvb24iLCJyb2xlIjoiVVNFUiIsImV4cCI6Nzc2OTcwODIwOH0.1h9_dApOdRaoap8DRNRPh2_ldAD9UoaZP9bJYlXSOwc
+@IDDrDonut = 17697080666840003
+POST {{hostAuth}}/login
+Content-Type: application/json
+
+{
+  "email": "DrDonut.adventure@time.cartoon",
+  "password": "adventuretime"
+}
+
+
+
+### Login Crunchy
+@TokenCrunchy = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjcnVuY2h5LmFkdmVudHVyZUB0aW1lLmNhcnRvb24iLCJyb2xlIjoiVVNFUiIsImV4cCI6Nzc2OTcwODIyMn0.V76uYliiCwVtnePIIbrQYHA6oPZA0l_Fnpav-jXQ83I
+@IDCrunchy = 17697080699570004
+POST {{hostAuth}}/login
+Content-Type: application/json
+
+{
+  "email": "crunchy.adventure@time.cartoon",
+  "password": "adventuretime"
+}
+
+# =============================================================================
+# IDs DE REFERENCIA (actualizar según BD)
+# =============================================================================
+
+# Libros (obtener desde GET /api/v1/book/)
+@book_01 = 9781234567890
+@book_02 = 9780553897845
+@book_03 = 9780261103573
+@book_04 = 9780132350884
+@book_05 = 9780596007126
+@book_06 = 9788497592208
+
+
+### Leer todos los libros
+GET {{hostBook}}/
 
 # IDs inexistentes para pruebas negativas
 @nonExistingLoanId = 99999999999999999
 @nonExistingBookId = 9999999999999
 @nonExistingUserId = 00000000000000000
 
+# =============================================================================
+# 1) CONFIGURAR BOOKCASE (REQUERIDO)
+# =============================================================================
 
-### =============================================================================
-### 1)  Crear préstamo para tener ID para siguientes pruebas
-### =============================================================================
+### Verificar estado actual del BookCase
+GET {{host}}/bookcase/status
+Authorization: Bearer {{adminToken}}
+
+### Configurar BookCase con algoritmo DEFICIENT
+POST {{host}}/bookcase/configure
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "algorithm_type": "DEFICIENT",
+  "weight_capacity": 15.0,
+  "capacity_stands": 8
+}
+
+### Configurar BookCase con algoritmo OPTIMOUM (alternativa)
+# POST {{host}}/bookcase/configure
+# Authorization: Bearer {{adminToken}}
+# Content-Type: application/json
+# 
+# {
+#   "algorithm_type": "OPTIMOUM",
+#   "weight_capacity": 20.0,
+#   "capacity_stands": 10
+# }
+
+### Ejecutar organización manual (opcional)
+POST {{host}}/bookcase/organize
+Authorization: Bearer {{adminToken}}
+
+# =============================================================================
+# 2) CREAR PRÉSTAMOS (usar IDs de BD actual)
+# =============================================================================
 
 ### @name createLoan1
 POST {{host}}/
 Content-Type: application/json
+Authorization: Bearer {{adminToken}}
 
 {
-  "id_user": "{{user01}}",
-  "id_ISBN_book": "{{book01}}"
+  "id_user": "{{IDStarchy}}",
+  "id_ISBN_book": "{{book_01}}"
 }
 
 ### @name createLoan2
 POST {{host}}/
 Content-Type: application/json
+Authorization: Bearer {{adminToken}}
 
 {
-  "id_user": "{{user02}}",
-  "id_ISBN_book": "{{book02}}"
+  "id_user": "{{IDDrDonut}}",
+  "id_ISBN_book": "{{book_02}}"
 }
 
 ### @name createLoan3
 POST {{host}}/
 Content-Type: application/json
+Authorization: Bearer {{adminToken}}
 
 {
-  "id_user": "{{user03}}",
-  "id_ISBN_book": "{{book05}}"
+  "id_user": "{{IDCrunchy}}",
+  "id_ISBN_book": "{{book_03}}"
 }
 
 ### @name createLoan4
 POST {{host}}/
 Content-Type: application/json
+Authorization: Bearer {{adminToken}}
 
 {
-  "id_user": "{{user01}}",
-  "id_ISBN_book": "{{book04}}"
+  "id_user": "{{IDStarchy}}",
+  "id_ISBN_book": "{{book_04}}"
 }
 
 # =============================================================================
-# 2) aseline: leer todos los préstamos
+# 3) ESTABLECER IDs DE PRÉSTAMOS CREADOS
 # =============================================================================
-### @name readAllBaseline
+
+# ⚠️ ACTUALIZAR ESTOS IDs DESPUÉS DE EJECUTAR LOS POST ANTERIORES
+# Copiar los IDs de las respuestas de createLoan1-4
+### Leer todos los préstamos (cualquier usuario autenticado)
 GET {{host}}/
+Authorization: Bearer {{TokenStarchy}}
+
+@loanId_New01 = 17697841547260001
+@loanId_New02 = 17697845157010002
+@loanId_New03 = 17697845181680003
+@loanId_New04 = 17697845206000004
 
 # =============================================================================
-# 3) establesemos lo préstamo creado en el paso 1
+# 4) LEER PRÉSTAMOS
 # =============================================================================
 
-  @loanId_New01 = 17682495836280001
-  @loanId_New02 = 17682495891830002
-  @loanId_New03 = 17682495915150003
-  @loanId_New04 = 17682495938710004
-
-
-# ============================================================================
-# 4) Leer el préstamo creado
-# ============================================================================
-### @name readCreatedLoan01
+### Leer préstamo específico por ID
 GET {{host}}/{{loanId_New01}}
+Authorization: Bearer {{TokenStarchy}}
 
-### @name readCreatedLoan02
-GET {{host}}/{{loanId_New02}}
+### Leer préstamos de un usuario específico (admin)
+GET {{host}}/user/{{IDStarchy}}
+Authorization: Bearer {{adminToken}}
 
-### @name readCreatedLoan03
-GET {{host}}/{{loanId_New03}}
+# =============================================================================
+# 5) CASOS DE ERROR AL CREAR PRÉSTAMOS
+# =============================================================================
 
-### @name readCreatedLoan04
-GET {{host}}/{{loanId_New04}}
-
-
-# ============================================================================
-# 5 ) intentar crear prestamo con un libro ya prestado (debería fallar)
-# ============================================================================
-### @name createLoanWithBorrowedBook
+### Intentar crear préstamo con libro ya prestado (debe fallar con 400)
 POST {{host}}/
 Content-Type: application/json
+Authorization: Bearer {{adminToken}}
 
 {
-  "id_user": "{{user02}}",
-  "id_ISBN_book": "{{book01}}"
+  "id_user": "{{IDDrDonut}}",
+  "id_ISBN_book": "{{book_03}}"
 }
 
-# =============================================================================
-# 6) intentar crear préstamo con usuario inexistente (debería fallar)
-# =============================================================================
-### @name createLoanWithInvalidUser
+### Intentar crear préstamo con usuario inexistente (debe fallar con 404)
 POST {{host}}/
 Content-Type: application/json
+Authorization: Bearer {{adminToken}}
 
 {
   "id_user": "{{nonExistingUserId}}",
-  "id_ISBN_book": "{{book06}}"
+  "id_ISBN_book": "{{book_05}}"
 }
 
-# ============================================================================
-# 7) intentar crear préstamo con libro inexistente (debería fallar)
-# ============================================================================
-### @name createLoanWithInvalidBook
+### Intentar crear préstamo con libro inexistente (debe fallar con 404)
 POST {{host}}/
 Content-Type: application/json
+Authorization: Bearer {{adminToken}}
 
 {
-  "id_user": "{{user03}}",
+  "id_user": "{{IDCrunchy}}",
   "id_ISBN_book": "{{nonExistingBookId}}"
 }
 
 # =============================================================================
-# 8) Actualizar préstamo: cambiar libro prestado
+# 6) ACTUALIZAR PRÉSTAMOS (solo admin)
 # =============================================================================
 
-### @name updateLoanToCosmos
+### Cambiar libro prestado (actualizar préstamo)
 PATCH {{host}}/{{loanId_New01}}
 Content-Type: application/json
+Authorization: Bearer {{adminToken}}
 
 {
-  "id_ISBN_book": "{{book08}}"
+  "id_ISBN_book": "{{book_06}}"
 }
 
-# > {%
-#   client.test("Update returns 200", function() {
-#     client.assert(response.status === 200, "Response status is not 200");
-#   });
-  
-#   client.test("Loan book was updated to Cosmos", function() {
-#     client.assert(response.body.data.id_ISBN_book === "{{book05}}", "Book ISBN was not updated");
-#   });
-  
-#   client.test("Updated book matches Cosmos ISBN", function() {
-#     client.assert(response.body.data.id_ISBN_book === "9780345539434", "Book was not updated to Cosmos");
-#   });
-# %}
-
-### @name verifyLoanUpdated
+### Verificar que el préstamo fue actualizado
 GET {{host}}/{{loanId_New01}}
+Authorization: Bearer {{TokenStarchy}}
 
-> {%
-  client.test("Verify updated loan has correct book", function() {
-    client.assert(response.body.data.id_ISBN_book === "{{book05}}", "Book was not persisted correctly");
-  });
-%}
-
-# =============================================================================
-# 9) intertar actualizar préstamo a libro ya prestado (debería fallar)
-# =============================================================================
-### @name updateLoanToBorrowedBook
+### Intentar actualizar a libro ya prestado (debe fallar con 400)
 PATCH {{host}}/{{loanId_New02}}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "id_ISBN_book": "{{book_06}}"
+}
+
+# =============================================================================
+# 7) ELIMINAR PRÉSTAMOS (devolución)
+# =============================================================================
+
+### Devolver libro (eliminar préstamo) - solo admin
+DELETE {{host}}/{{loanId_New01}}
+Authorization: Bearer {{adminToken}}
+
+### Verificar que el préstamo fue eliminado (debe retornar 404)
+GET {{host}}/{{loanId_New01}}
+Authorization: Bearer {{TokenStarchy}}
+
+### Verificar que el libro ahora está disponible
+GET {{hostBook}}/{{book_04}}
+
+### Intentar eliminar préstamo inexistente (debe fallar con 404)
+DELETE {{host}}/{{nonExistingLoanId}}
+Authorization: Bearer {{adminToken}}
+
+# =============================================================================
+# 8) GESTIÓN DE BOOKCASE (solo admin)
+# =============================================================================
+
+### Obtener información del BookCase configurado
+GET {{host}}/bookcase/status
+Authorization: Bearer {{adminToken}}
+
+### Reconfigurar BookCase con nuevo algoritmo
+POST {{host}}/bookcase/configure
+Authorization: Bearer {{adminToken}}
 Content-Type: application/json
 
 {
-  "id_ISBN_book": "{{book05}}"
+  "algorithm_type": "OPTIMOUM",
+  "weight_capacity": 25.0,
+  "capacity_stands": 12
 }
 
+### Ejecutar organización con algoritmo actual
+POST {{host}}/bookcase/organize
+Authorization: Bearer {{adminToken}}
 
+### Deshabilitar BookCase
+DELETE {{host}}/bookcase/disable
+Authorization: Bearer {{adminToken}}
 
 # =============================================================================
-# 10) Leer todos los préstamos (debería incluir el actualizado)
+# 9) PRUEBAS DE AUTENTICACIÓN Y AUTORIZACIÓN
 # =============================================================================
-### @name readAllAfterUpdate
+
+### Intentar crear préstamo sin token (debe fallar con 401)
+POST {{host}}/
+Content-Type: application/json
+
+{
+  "id_user": "{{IDStarchy}}",
+  "id_ISBN_book": "{{book_05}}"
+}
+
+### Intentar actualizar préstamo con token de usuario (debe fallar con 403)
+PATCH {{host}}/{{loanId_New02}}
+Content-Type: application/json
+Authorization: Bearer {{TokenStarchy}}
+
+{
+  "id_ISBN_book": "{{book_01}}"
+}
+
+### Intentar eliminar préstamo con token de usuario (debe fallar con 403)
+DELETE {{host}}/{{loanId_New02}}
+Authorization: Bearer {{TokenStarchy}}
+
+# =============================================================================
+# 10) VERIFICAR INTEGRIDAD DE DATOS
+# =============================================================================
+
+### Listar todos los préstamos activos
 GET {{host}}/
+Authorization: Bearer {{adminToken}}
 
+### Verificar historial de usuario (debe incluir préstamos devueltos)
+GET {{hostAuth}}/me
+Authorization: Bearer {{TokenStarchy}}
 
-# =============================================================================
-# 11) Eliminar el préstamo creado (devolución)
-# =============================================================================
-### @name deleteLoan
-DELETE {{host}}/{{loanId_New01}}
+### Verificar que libros devueltos están disponibles
+GET {{hostBook}}/available/list
 
-> {%
-  client.test("Delete returns 200", function() {
-    client.assert(response.status === 200, "Response status is not 200");
-  });
-  client.test("Delete data is true", function() {
-    client.assert(response.body.data === true, "Delete operation did not return true");
-  });
-%}
+### Verificar que libros prestados no están disponibles
+GET {{hostBook}}/borrowed/list
 
 # =============================================================================
-# 12) Intentar leer el préstamo eliminado (debería fallar)
+# NOTAS IMPORTANTES
 # =============================================================================
-### @name readDeletedLoan
-GET {{host}}/{{loanId_New01}}
+
+# 1. ACTUALIZAR IDs:
+#    - Ejecuta GET /api/v1/user/ para obtener IDs de usuarios reales
+#    - Ejecuta GET /api/v1/book/ para obtener ISBNs de libros reales
+#    - Actualiza las variables @user_* y @book_* con valores reales
+
+# 2. TOKENS:
+#    - Los tokens tienen expiración (ACCESS_TOKEN_EXPIRE_MINUTES)
+#    - Si un endpoint falla con 401, genera nuevos tokens con POST /auth/login
+
+# 3. BOOKCASE:
+#    - DEBE configurarse antes de crear préstamos (POST /bookcase/configure)
+#    - Algoritmos disponibles: "DEFICIENT", "OPTIMOUM"
+#    - El algoritmo afecta cómo se organizan los libros en estantes
+
+# 4. PERMISOS:
+#    - Crear/Actualizar/Eliminar préstamos: SOLO ADMIN
+#    - Leer préstamos: Cualquier usuario autenticado
+#    - Configurar BookCase: SOLO ADMIN
+
+# 5. FLUJO TÍPICO:
+#    a) Admin configura BookCase
+#    b) Usuario solicita préstamo (crear loan)
+#    c) Admin aprueba/procesa préstamo
+#    d) Usuario usa libro
+#    e) Usuario devuelve libro (delete loan)
+#    f) Sistema actualiza disponibilidad y historial
+
+# 6. BASE DE DATOS:
+#    - Los datos persisten en library.db (SQLite)
+#    - Para reiniciar BD: elimina library.db y reinicia servidor
+#    - Para migrar datos JSON: ejecuta scripts/migrate_*.py
+
+# 7. ERRORES COMUNES:
+#    - 400: Datos inválidos (libro ya prestado, campos requeridos faltantes)
+#    - 401: Token inválido o expirado
+#    - 403: Usuario sin permisos (requiere admin)
+#    - 404: Recurso no encontrado (ID inválido)
+#    - 500: Error interno (revisar logs en logs/)
 
 # =============================================================================
-# 13) Leer todos los préstamos (debería no incluir el eliminado)
+# REFERENCIAS
 # =============================================================================
-### @name readAllAfterDelete
-GET {{host}}/
 
-# =============================================================================
-# 14) Intentar eliminar préstamo inexistente (debería fallar)
-# =============================================================================
-### @name deleteNonExistingLoan
-DELETE {{host}}/{{nonExistingLoanId}}
+# - Documentación API: http://localhost:8000/docs
+# - Contexto completo: CONTEXTO_CHAT_MIGRACION_BD.md
+# - Plan de desarrollo: PLAN_V2.md
+# - Tests: test/test_loan_endpoints.py

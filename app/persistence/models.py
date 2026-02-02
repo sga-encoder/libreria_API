@@ -5,6 +5,7 @@ Se importan en app/persistence/database.py para crear las tablas.
 """
 
 from sqlalchemy import Column, String, DateTime, JSON, Boolean, Float, Integer, ForeignKey
+from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.core.database import Base
 
@@ -59,3 +60,7 @@ class LoanORM(Base):
     return_date = Column(DateTime, nullable=True)
     status = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.now)
+    
+    # Relaciones
+    user = relationship("UserORM", foreign_keys=[id_user])
+    book = relationship("BookORM", foreign_keys=[id_ISBN_book])

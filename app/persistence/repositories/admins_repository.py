@@ -42,3 +42,9 @@ class AdminsRepositorySQL(BaseRepository[AdminORM]):
             password=admin.get_password(),
             is_active=True
         )
+        
+    def __str__(self):
+        return f"AdminsRepositorySQL(total_admins={len(self.read_all())})"
+    
+    def __repr__(self):
+        return f"AdminsRepositorySQL(total_admins={len(self.read_all())})"

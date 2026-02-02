@@ -1,6 +1,5 @@
 @host = http://localhost:8000/api/v1
-@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0aGVQcmltby5hZHZlbnR1cmVAdGltZS5jYXJ0b29uIiwicm9sZSI6IkFETUlOIiwiZXhwIjo3NzY5Mjg4MzA3fQ.g-1hs1XFYyqEElw2I2n5SqEtWcXhsyJqlQnTmByqLf0
-
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ0aGVQcmltby5hZHZlbnR1cmVAdGltZS5jYXJ0b29uIiwicm9sZSI6IkFETUlOIiwiZXhwIjo3NzY5NzA3OTk4fQ.cBbl8cmINaCPoJ2Q3oLqkNJEAbNazRv4lwRuXl_vNLQ
 ### =============================================================================
 ### AUTENTICACIÓN DE ADMIN
 ### =============================================================================

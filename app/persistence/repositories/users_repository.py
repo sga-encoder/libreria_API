@@ -76,3 +76,9 @@ class UsersRepositorySQL(BaseRepository[UserORM]):
             role=user.get_role().name,
             is_active=True
         )
+        
+    def __str__(self):
+        return f"UsersRepositorySQL(total_users={len(self.read_all())})"
+    
+    def __repr__(self):
+        return f"UsersRepositorySQL(total_users={len(self.read_all())})"
